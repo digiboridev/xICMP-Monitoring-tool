@@ -68,6 +68,8 @@ class HostModel {
     }
   }
 
+  //changes
+
   void toggleIsolate() {
     if (isStared == false) {
       _startIsolate();
