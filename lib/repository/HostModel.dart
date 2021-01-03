@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math';
 
 import 'package:pingstats/repository/IhostDB.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:easyping/easyping.dart';
 
 class IsolateParams {}
 
@@ -45,6 +45,7 @@ class HostModel {
     void tick() async {
       double pingToAddress = await _pingTo(msg['host']);
       msg['rp'].send(pingToAddress.toString());
+      // msg['rp'].send(Random().nextInt(1000).toString());
       Timer(new Duration(seconds: msg['interval']), tick);
     }
 
@@ -67,8 +68,6 @@ class HostModel {
       isStared = false;
     }
   }
-
-  //changes
 
   void toggleIsolate() {
     if (isStared == false) {
