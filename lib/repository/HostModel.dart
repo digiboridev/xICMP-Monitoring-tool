@@ -24,6 +24,14 @@ class HostModel {
           DateTime.now().microsecondsSinceEpoch, double.parse(value).toInt());
     });
     updateSamples();
+    updateIsOn();
+  }
+
+  final _isOn = BehaviorSubject<bool>();
+  Stream<bool> get isOn => _isOn.stream;
+
+  void updateIsOn() {
+    _isOn.sink.add(isStared);
   }
 
   static Future<double> _pingTo(String adress) async {
@@ -44,37 +52,40 @@ class HostModel {
 
     void tick() async {
       double pingToAddress = await _pingTo(msg['host']);
-      msg['rp'].send(pingToAddress.toString());
-      // msg['rp'].send(Random().nextInt(1000).toString());
+      // msg['rp'].send(pingToAddress.toString());
+      msg['rp'].send(Random().nextInt(1000).toString());
       Timer(new Duration(seconds: msg['interval']), tick);
     }
 
     tick();
   }
 
-  void _startIsolate() async {
+  Future _startIsolate() async {
     isStared = true;
     _isolate = await Isolate.spawn(isolate,
         {'rp': _receivePort.sendPort, 'host': hostname, 'interval': 1});
+    updateIsOn();
   }
 
-  void _stopIsolate() {
+  Future _stopIsolate() async {
     if (_isolate == null) {
-      print('Provider Isolate kill tick');
-      Timer(Duration(milliseconds: 100), _stopIsolate);
+      // print('Provider Isolate kill tick');
+      Timer(Duration(milliseconds: 1), _stopIsolate);
     } else {
       _isolate.kill();
       _isolate = null;
       isStared = false;
+      updateIsOn();
     }
   }
 
-  void toggleIsolate() {
+  Future toggleIsolate() async {
     if (isStared == false) {
-      _startIsolate();
+      await _startIsolate();
     } else {
-      _stopIsolate();
+      await _stopIsolate();
     }
+    // sleep(Duration(seconds: 1));
   }
 
   final _samples = BehaviorSubject<Future<List>>();
@@ -96,5 +107,7 @@ class HostModel {
     sub.cancel();
     _receivePort.close();
     _stopIsolate();
+
+    _isOn.close();
   }
 }

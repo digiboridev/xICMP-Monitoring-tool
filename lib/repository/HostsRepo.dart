@@ -52,4 +52,16 @@ class HostsRepo {
       await _db.deleteHostByName(hostname);
     }
   }
+
+  void startAll() {
+    _hosts.forEach((HostModel host) {
+      !host.isStared ? host.toggleIsolate() : null;
+    });
+  }
+
+  void stopAll() {
+    _hosts.forEach((HostModel host) {
+      host.isStared ? host.toggleIsolate() : null;
+    });
+  }
 }

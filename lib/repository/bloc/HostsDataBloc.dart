@@ -25,4 +25,7 @@ class HostsDataBloc {
     await _repository.deleteHost(hostname);
     updateHosts();
   }
+
+  void startAll() => _repository.startAll();
+  void stopAll() => _repository.stopAll();
 }

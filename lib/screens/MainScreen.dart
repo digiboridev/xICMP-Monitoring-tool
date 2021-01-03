@@ -18,9 +18,17 @@ class _MainScreenState extends State<MainScreen> {
     // TODO: implement initState
     super.initState();
     bloc = context.read<HostsDataBloc>();
-    bloc.hosts.listen((event) {
-      event.then((value) => print(value));
-    });
+    // bloc.hosts.listen((event) {
+    //   event.then((value) => print(value));
+    // });
+  }
+
+  void startAll() {
+    bloc.startAll();
+  }
+
+  void stopAll() {
+    bloc.stopAll();
   }
 
   @override
@@ -33,7 +41,39 @@ class _MainScreenState extends State<MainScreen> {
         mainAxisSize: MainAxisSize.max,
         children: [
           Container(
-            height: 50,
+            height: 36,
+            child: Row(
+              children: [
+                IconButton(
+                    icon: Icon(
+                      Icons.play_arrow,
+                      color: Color(0xffEBEBEB),
+                    ),
+                    tooltip: 'Start all',
+                    onPressed: startAll),
+                IconButton(
+                    icon: Icon(
+                      Icons.stop,
+                      color: Color(0xffEBEBEB),
+                    ),
+                    tooltip: 'Stop all',
+                    onPressed: stopAll),
+                IconButton(
+                    icon: Icon(
+                      Icons.add,
+                      color: Color(0xffEBEBEB),
+                    ),
+                    tooltip: 'Add host',
+                    onPressed: null),
+                IconButton(
+                    icon: Icon(
+                      Icons.do_disturb_sharp,
+                      color: Color(0xffEBEBEB),
+                    ),
+                    tooltip: 'Delete all',
+                    onPressed: null)
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
