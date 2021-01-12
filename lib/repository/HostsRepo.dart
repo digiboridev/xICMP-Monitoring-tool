@@ -64,4 +64,13 @@ class HostsRepo {
       host.isStared ? host.toggleIsolate() : null;
     });
   }
+
+  Future deleteAll() async {
+    _hosts.forEach((element) async {
+      element.isStared ? element.toggleIsolate() : null;
+      element.dispose();
+      await _db.deleteHostByName(element.hostname);
+    });
+    _hosts.clear();
+  }
 }

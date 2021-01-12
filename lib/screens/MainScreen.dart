@@ -31,6 +31,39 @@ class _MainScreenState extends State<MainScreen> {
     bloc.stopAll();
   }
 
+  void addDialog() async {
+    String _dialogText = 'asd';
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: Text('External adress input'),
+              content: Container(
+                  height: 40,
+                  child: TextField(
+                    onChanged: (v) => _dialogText = v,
+                  )),
+              actions: [
+                FlatButton(
+                    onPressed: () {
+                      print(_dialogText);
+                      Navigator.pop(context, true);
+                      bloc.addHost(_dialogText);
+                    },
+                    child: Text('Save')),
+                FlatButton(
+                    onPressed: () {
+                      Navigator.pop(context, true);
+                    },
+                    child: Text('Decline'))
+              ]);
+        });
+  }
+
+  void deleteAll() {
+    bloc.deleteAll();
+  }
+
   @override
   Widget build(BuildContext context) {
     // bloc.addHost('speedtest.net');
@@ -64,14 +97,14 @@ class _MainScreenState extends State<MainScreen> {
                       color: Color(0xffEBEBEB),
                     ),
                     tooltip: 'Add host',
-                    onPressed: null),
+                    onPressed: addDialog),
                 IconButton(
                     icon: Icon(
                       Icons.do_disturb_sharp,
                       color: Color(0xffEBEBEB),
                     ),
                     tooltip: 'Delete all',
-                    onPressed: null)
+                    onPressed: deleteAll)
               ],
             ),
           ),
@@ -80,28 +113,24 @@ class _MainScreenState extends State<MainScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(children: [
-                  Text('Status'),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('Count'),
-                  ),
-                  Padding(
+                Text('Status'),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Count'),
+                ),
+                Expanded(
+                  child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text('Host'),
-                  )
-                ]),
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('Latency'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('Graph'),
-                    )
-                  ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Latency'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Graph'),
                 )
               ],
             ),
