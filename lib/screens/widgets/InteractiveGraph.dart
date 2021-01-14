@@ -15,43 +15,37 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   double prevscale = 1.0;
 
   @override
-  void didUpdateWidget(covariant InteractiveGraph oldWidget) {
-    // TODO: implement didUpdateWidget
-    super.didUpdateWidget(oldWidget);
-
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: ClipRect(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: GestureDetector(
-            onScaleUpdate: (details) {
-              setState(() {
-                scale = prevscale * details.scale;
-              });
-            },
-            onScaleEnd: (details) {
-              setState(() {
-                prevscale = scale;
-              });
-            },
-            child: Container(
-              // color: Colors.amber,
-              width: (MediaQuery.of(context).size.width - 32) * scale,
-
-              child: CustomPaint(
-                painter: GraphPainter(widget.data, scale),
+    if (widget.data.length < 5) {
+      return Container();
+    } else {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: ClipRect(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: GestureDetector(
+              onScaleUpdate: (details) {
+                setState(() {
+                  scale = prevscale * details.scale;
+                });
+              },
+              onScaleEnd: (details) {
+                setState(() {
+                  prevscale = scale;
+                });
+              },
+              child: Container(
+                width: (MediaQuery.of(context).size.width - 32) * scale,
+                child: CustomPaint(
+                  painter: GraphPainter(widget.data, scale),
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 }
 
@@ -77,16 +71,23 @@ class GraphPainter extends CustomPainter {
       return size.width * timeDiffP;
     }
 
-    // var rect = Offset(0, 0) & Size(size.width, size.height - 16);
-
-    // canvas.drawRect(rect, Paint()..color = Color(0xffFAF338));
     Path pingLine = Path();
 
-    for (var i = 1; i < xList.length; i++) {
-      // ctx.moveTo(wCalc(xList[i - 1]['time']), hCalc(xList[i - 1]['ping']));
-      pingLine.moveTo(wCalc(xList[i]['time']), size.height - 16);
-      pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']));
+    int count = 0;
+    double p = xList.length / (size.width * 2);
+
+    Stopwatch stopwatch = new Stopwatch()..start();
+
+    for (var i = 0; i < xList.length; i++) {
+      if (i % p < 1 || xList[i]['ping'] > 500) {
+        pingLine.moveTo(wCalc(xList[i]['time']), size.height - 16);
+        pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']));
+        count++;
+      }
     }
+
+    print(count);
+    print('executed in ${stopwatch.elapsed}');
 
     canvas.drawPath(
         pingLine,

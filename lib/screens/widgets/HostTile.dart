@@ -75,12 +75,7 @@ class _HostTileState extends State<HostTile> {
                           stream: widget.host.samples,
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
-                              return FutureBuilder(
-                                  future: snapshot.data,
-                                  builder: (context, snapshot) {
-                                    return Text(
-                                        snapshot.data?.length.toString());
-                                  });
+                              return Text(snapshot.data?.length.toString());
                             } else {
                               return Text('load');
                             }
@@ -104,17 +99,13 @@ class _HostTileState extends State<HostTile> {
                           stream: widget.host.samples,
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
-                              return FutureBuilder(
-                                  future: snapshot.data,
-                                  builder: (context, snapshot) {
-                                    if (snapshot.data != null) {
-                                      return TileLatency(snapshot.data);
-                                    } else {
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                  });
+                              if (snapshot.data != null) {
+                                return TileLatency(snapshot.data);
+                              } else {
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
                             } else {
                               return Text('load');
                             }
@@ -128,19 +119,15 @@ class _HostTileState extends State<HostTile> {
                           stream: widget.host.samples,
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
-                              return FutureBuilder(
-                                  future: snapshot.data,
-                                  builder: (context, snapshot) {
-                                    if (snapshot.data != null) {
-                                      return CustomPaint(
-                                        painter: TileGraph(snapshot.data),
-                                      );
-                                    } else {
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    }
-                                  });
+                              if (snapshot.data != null) {
+                                return CustomPaint(
+                                  painter: TileGraph(snapshot.data),
+                                );
+                              } else {
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              }
                             } else {
                               return Text('load');
                             }
@@ -174,17 +161,13 @@ class _HostTileState extends State<HostTile> {
                     stream: widget.host.samples,
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        return FutureBuilder(
-                            future: snapshot.data,
-                            builder: (context, snapshot) {
-                              if (snapshot.data != null) {
-                                return InteractiveGraph(snapshot.data);
-                              } else {
-                                return Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
-                            });
+                        if (snapshot.data != null) {
+                          return InteractiveGraph(snapshot.data);
+                        } else {
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
                       } else {
                         return Text('load');
                       }
@@ -232,7 +215,6 @@ class TileLatency extends StatefulWidget {
       }
 
       if (value == 0 || value == 1000) {
-        print(value);
         loss++;
       }
     }
