@@ -114,10 +114,6 @@ class _MainScreenState extends State<MainScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Status'),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('Count'),
-                ),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -125,13 +121,13 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text('Latency'),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('Graph'),
-                )
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text('Last minute'),
+                ),
               ],
             ),
           ),

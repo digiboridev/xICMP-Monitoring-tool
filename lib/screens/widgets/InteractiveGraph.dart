@@ -62,7 +62,7 @@ class GraphPainter extends CustomPainter {
     int timeDiff = last - first;
 
     double hCalc(p) {
-      double h = size.height - 16;
+      double h = size.height - 24;
       return (h / 1000 * (1000 - p));
     }
 
@@ -81,7 +81,7 @@ class GraphPainter extends CustomPainter {
     for (var i = 0; i < xList.length; i++) {
       if (i % p < 1 || xList[i]['ping'] > 500) {
         pingLine.moveTo(wCalc(xList[i]['time']), size.height - 16);
-        pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']));
+        pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']) + 8);
         count++;
       }
     }

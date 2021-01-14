@@ -67,25 +67,9 @@ class _HostTileState extends State<HostTile> {
                         ),
                       ),
                     ),
-                    Container(
-                      width: 50,
-                      // padding: const EdgeInsets.all(8.0),
-                      child: Center(
-                        child: StreamBuilder(
-                          stream: widget.host.samples,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return Text(snapshot.data?.length.toString());
-                            } else {
-                              return Text('load');
-                            }
-                          },
-                        ),
-                      ),
-                    ),
                     Expanded(
                         child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Text(widget.host.hostname),
@@ -132,7 +116,13 @@ class _HostTileState extends State<HostTile> {
                               return Text('load');
                             }
                           },
-                        ))
+                        )),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(!expanded
+                          ? Icons.arrow_drop_down
+                          : Icons.arrow_drop_up),
+                    )
                   ],
                 ),
               ),
@@ -155,7 +145,7 @@ class _HostTileState extends State<HostTile> {
         AnimatedContainer(
             // color: Color(0xff25252D),
             duration: Duration(milliseconds: 200),
-            height: expanded ? 100 : 0,
+            height: expanded ? 120 : 0,
             child: expanded
                 ? StreamBuilder(
                     stream: widget.host.samples,
@@ -240,10 +230,6 @@ class _TileLatencyState extends State<TileLatency> {
           '${widget.avg} avg',
           style: st,
         ),
-        // Text(
-        //   '${widget.min} min',
-        //   style: st,
-        // ),
         Text(
           '${widget.loss}% loss',
           style: st,
