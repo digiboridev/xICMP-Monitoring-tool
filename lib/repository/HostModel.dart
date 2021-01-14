@@ -51,12 +51,13 @@ class HostModel {
     print('Isolate started with: ' + msg.toString());
 
     void tick() async {
-      // int rand = Random().nextInt(1000);
-      // sleep(Duration(milliseconds: rand));
-      // msg['rp'].send(rand.toString());
+      int rand = Random().nextInt(1000);
+      sleep(Duration(milliseconds: rand));
+      msg['rp'].send(rand.toString());
 
-      double pingToAddress = await _pingTo(msg['host']);
-      msg['rp'].send(pingToAddress.toString());
+      // double pingToAddress = await _pingTo(msg['host']);
+      // msg['rp'].send(pingToAddress.toString());
+
       Timer(new Duration(seconds: msg['interval']), tick);
     }
 
