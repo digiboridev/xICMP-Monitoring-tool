@@ -16,8 +16,9 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   //Uses for make graph zoomable
   double scale = 1.0;
 
-  //Uses to prevent overzoom
+  //Uses to zoom and scroll calculations
   double prevscale = 1.0;
+  double prevOffset = 0;
 
   ScrollController scr = ScrollController();
 
@@ -38,20 +39,22 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
             scrollDirection: Axis.horizontal,
             // Detects scale gesture
             child: GestureDetector(
-              // Adjust new scale loocking on prevscale
+              // Hold last values before changes
+              onScaleStart: (details) {
+                prevOffset = scr.offset;
+                prevscale = scale;
+              },
+
+              // Adjust new scale loocking on previous values
               onScaleUpdate: (details) {
                 setState(() {
-                  double asd = scr.offset * sqrt(details.scale);
+                  // Jump to offset proportionaly to scale
+                  double asd = prevOffset * details.scale;
+                  scr.jumpTo(asd);
+
+                  // Adjust scale
                   scale = prevscale * details.scale;
-                  scr.animateTo(asd,
-                      duration: Duration(milliseconds: 1),
-                      curve: Curves.linear);
-                });
-              },
-              // After touch down sets new scale as prevscale
-              onScaleEnd: (details) {
-                setState(() {
-                  prevscale = scale;
+                  scale < 1.0 ? scale = 1 : scale = scale;
                 });
               },
               child: Container(
@@ -96,7 +99,7 @@ class GraphPainter extends CustomPainter {
 
     // Calc percent of canvas height by point ping
     double hCalc(p) {
-      double h = size.height - 24;
+      double h = size.height - 32;
       return (h / 1000 * (1000 - p));
     }
 
@@ -116,7 +119,7 @@ class GraphPainter extends CustomPainter {
 
     // Percent of points for optimizations
     // Last value regulate how many points will display on canvas
-    double pWidth = xList.length / 3600;
+    double pWidth = xList.length / 9000;
 
     Stopwatch stopwatch = new Stopwatch()..start();
 
@@ -128,35 +131,33 @@ class GraphPainter extends CustomPainter {
 
       // Optimized hybrid render
 
-      // if ((time > scr.offset && time < scr.offset + cWidth) &&
-      //     (i % pWidth < 1)) {
-      //   pingLine.moveTo((time), size.height - 16);
-      //   pingLine.lineTo((time), hCalc(ping) + 8);
-      //   count++;
-      // }
+      if ((time > scr.offset && time < scr.offset + cWidth) &&
+          (i % pWidth < 1)) {
+        pingLine.moveTo((time), size.height - 16);
+        pingLine.lineTo((time), hCalc(ping) + 16);
+        count++;
+      }
 
       // Render only points inside vievport and cut others
 
-      if ((time > scr.offset && time < scr.offset + cWidth)) {
-        pingLine.moveTo((time), size.height - 16);
-        pingLine.lineTo((time), hCalc(ping) + 8);
-        count++;
-      }
+      // if ((time > scr.offset && time < scr.offset + cWidth)) {
+      //   pingLine.moveTo((time), size.height - 16);
+      //   pingLine.lineTo((time), hCalc(ping) + 16);
+      //   count++;
+      // }
 
       // Render a percent of points
 
       // if (i % p < 1 || xList[i]['ping'] > 500) {
       //   pingLine.moveTo(wCalc(xList[i]['time']), size.height - 16);
-      //   pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']) + 8);
+      //   pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']) + 16);
       //   count++;
       // }
 
       // Full render
       // pingLine.moveTo(wCalc(xList[i]['time']), size.height - 16);
-      // pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']) + 8);
+      // pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']) + 16);
     }
-
-    print(count);
 
     // Drawing loop for time
     // Calculate time points by percent of width
@@ -190,13 +191,23 @@ class GraphPainter extends CustomPainter {
         tp.paint(canvas, new Offset(size.width * i, size.height - 10));
       }
     }
-    print('executed in ${stopwatch.elapsed}');
+
+    // print(count);
+    // print('executed in ${stopwatch.elapsed}');
+
+    // Set opacity lowest by increasing number of points
+    // Its provide stacking on large datasets
+    int brightByCount() {
+      int asd = 255 - (255 * (count / 10000)).toInt();
+      return asd;
+    }
 
     canvas.drawPath(
         pingLine,
         Paint()
-          ..color = Color(0xffFAF338)
+          ..color = Color(0xffFAF338).withAlpha(brightByCount())
           // ..strokeWidth = 1
+
           ..style = PaintingStyle.stroke);
 
     canvas.drawPath(
