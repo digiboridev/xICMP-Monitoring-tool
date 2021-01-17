@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-class TileSummary extends StatefulWidget {
+// Calculate and return row with min max avg latency and packets lost of list
+class TileSummary extends StatelessWidget {
   int min = 1000;
   int max = 0;
   int avg = 0;
@@ -47,16 +48,10 @@ class TileSummary extends StatefulWidget {
   }
 
   @override
-  _TileSummaryState createState() => _TileSummaryState();
-}
-
-class _TileSummaryState extends State<TileSummary> {
-  @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
-            'AVG: ${widget.avg} / MIN: ${widget.min} / MAX: ${widget.max} / LOSS: ${widget.lossP}%',
+        Text('AVG: ${avg}ms  MIN: ${min}ms  MAX: ${max}ms  LOSS: ${lossP}%',
             style: TextStyle(
                 color: Color(0xffF5F5F5),
                 fontSize: 12,

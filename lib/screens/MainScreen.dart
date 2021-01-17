@@ -124,9 +124,10 @@ class _MainScreenState extends State<MainScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text('Latency'),
                 ),
-                Padding(
+                Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text('Last minute'),
+                  margin: EdgeInsets.only(right: 32),
+                  child: Text('Preview'),
                 ),
               ],
             ),

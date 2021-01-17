@@ -1,10 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 class InteractiveGraph extends StatefulWidget {
   // Receives list of pings and time
-  List data = [];
+  final List data;
   InteractiveGraph(this.data);
 
   @override
@@ -24,14 +22,11 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 
   @override
   Widget build(BuildContext context) {
-    print('render gr');
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      // Some times canvas may draws over container
-      // Hard clip it
-      child: ClipRect(
-        // Scroll children and pass offset to it by using Scrollcontroller
+    return ClipRRect(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        // Some times canvas may draws over container
+        // Hard clip it
         child: SingleChildScrollView(
           controller: scr,
           scrollDirection: Axis.horizontal,
@@ -109,6 +104,25 @@ class GraphPainter extends CustomPainter {
     // Init pathes
     Path pingLine = Path();
     Path times = Path();
+    Path scaleMs = Path();
+
+    for (var i = 0; i < 5; i++) {
+      TextSpan span = new TextSpan(
+          style: new TextStyle(
+              color: Color(0xffF5F5F5),
+              fontSize: 6,
+              fontWeight: FontWeight.w200),
+          text: '${i * 200}');
+
+      TextPainter tp = new TextPainter(
+          text: span,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr);
+
+      tp.layout();
+      tp.paint(canvas, new Offset(0, hCalc(i * 200)));
+      tp.paint(canvas, new Offset(size.width - 8, hCalc(i * 200)));
+    }
 
     // Count of drawing point
     // For perfomance debug
@@ -159,7 +173,7 @@ class GraphPainter extends CustomPainter {
     // Drawing loop for time
     // Calculate time points by percent of width
 
-    for (double i = 0; i < 1; i += (1 / (scale.floor() * 10))) {
+    for (double i = 0; i < 0.9; i += (1 / (scale.floor() * 10))) {
       // Cut other optimization
       if ((scr.offset) / size.width < i &&
           (scr.offset + cWidth) / size.width > i) {

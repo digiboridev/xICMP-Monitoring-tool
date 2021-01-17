@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:pingstats/repository/HostModel.dart';
@@ -12,7 +10,7 @@ import 'package:pingstats/screens/widgets/TileSummary.dart';
 import 'package:provider/provider.dart';
 
 class HostTile extends StatefulWidget {
-  HostModel host;
+  final HostModel host;
 
   HostTile(this.host);
 
@@ -23,8 +21,38 @@ class HostTile extends StatefulWidget {
 class _HostTileState extends State<HostTile> {
   bool expanded = false;
   Duration selectedPeriod = Duration(hours: 12);
+  List<DropdownMenuItem<Duration>> periodDropdownList = [
+    DropdownMenuItem(
+      child: Text('5 minutes'),
+      value: Duration(minutes: 5),
+    ),
+    DropdownMenuItem(
+      child: Text('Hour'),
+      value: Duration(hours: 1),
+    ),
+    DropdownMenuItem(
+      child: Text('6 Hours'),
+      value: Duration(hours: 6),
+    ),
+    DropdownMenuItem(
+      child: Text('12 Hours'),
+      value: Duration(hours: 12),
+    ),
+    DropdownMenuItem(
+      child: Text('1 day'),
+      value: Duration(days: 1),
+    ),
+    DropdownMenuItem(
+      child: Text('3 Days'),
+      value: Duration(days: 3),
+    ),
+    DropdownMenuItem(
+      child: Text('Week'),
+      value: Duration(days: 7),
+    )
+  ];
 
-  void ToggleRunning() {
+  void toggleRunning() {
     widget.host.toggleIsolate();
   }
 
@@ -48,7 +76,7 @@ class _HostTileState extends State<HostTile> {
     return Column(
       children: [
         InkWell(
-          onDoubleTap: ToggleRunning,
+          onDoubleTap: toggleRunning,
           onTap: () {
             setState(() {
               expanded = !expanded;
@@ -85,7 +113,7 @@ class _HostTileState extends State<HostTile> {
                     )),
                     Container(
                         // height: 24,
-                        width: 45,
+                        width: 50,
                         padding: EdgeInsets.only(right: 8),
                         child: StreamBuilder(
                           stream: widget.host.samplesByPeriod,
@@ -104,7 +132,7 @@ class _HostTileState extends State<HostTile> {
                           },
                         )),
                     Container(
-                        margin: EdgeInsets.symmetric(vertical: 8),
+                        // margin: EdgeInsets.symmetric(vertical: 8),
                         width: 50,
                         height: 24,
                         child: StreamBuilder(
@@ -254,36 +282,7 @@ class _HostTileState extends State<HostTile> {
                                           fontSize: 12,
                                           fontWeight: FontWeight.w400),
                                       underline: Container(),
-                                      items: [
-                                        DropdownMenuItem(
-                                          child: Text('5 minutes'),
-                                          value: Duration(minutes: 5),
-                                        ),
-                                        DropdownMenuItem(
-                                          child: Text('Hour'),
-                                          value: Duration(hours: 1),
-                                        ),
-                                        DropdownMenuItem(
-                                          child: Text('6 Hours'),
-                                          value: Duration(hours: 6),
-                                        ),
-                                        DropdownMenuItem(
-                                          child: Text('12 Hours'),
-                                          value: Duration(hours: 12),
-                                        ),
-                                        DropdownMenuItem(
-                                          child: Text('1 day'),
-                                          value: Duration(days: 1),
-                                        ),
-                                        DropdownMenuItem(
-                                          child: Text('3 Days'),
-                                          value: Duration(days: 3),
-                                        ),
-                                        DropdownMenuItem(
-                                          child: Text('Week'),
-                                          value: Duration(days: 7),
-                                        )
-                                      ]),
+                                      items: periodDropdownList),
                                 ],
                               ),
                               Expanded(
@@ -302,7 +301,7 @@ class _HostTileState extends State<HostTile> {
                                               size: 20,
                                               color: Color(0xffF5F5F5),
                                             ),
-                                            onPressed: () => ToggleRunning());
+                                            onPressed: () => toggleRunning());
                                       }),
                                   IconButton(
                                       icon: Icon(

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class TileLatency extends StatefulWidget {
-  // List xList = [];
-  int min = 1000;
-  int max = 0;
+// Return avg latency and lost percent of last 100 points
+
+class TileLatency extends StatelessWidget {
+  TextStyle st = TextStyle(fontSize: 10, fontWeight: FontWeight.w400);
   int avg = 0;
   int loss = 0;
 
@@ -23,14 +23,6 @@ class TileLatency extends StatefulWidget {
 
       num value = item['ping'];
 
-      if (value < min && value > 0) {
-        min = value;
-      }
-
-      if (value > max && value < 1000) {
-        max = value;
-      }
-
       if (value > 0 && value < 1000) {
         sum += value;
       }
@@ -45,24 +37,17 @@ class TileLatency extends StatefulWidget {
   }
 
   @override
-  _TileLatencyState createState() => _TileLatencyState();
-}
-
-class _TileLatencyState extends State<TileLatency> {
-  TextStyle st = TextStyle(fontSize: 10, fontWeight: FontWeight.w400);
-
-  @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${widget.avg} avg',
+          '${avg} ms',
           style: st,
         ),
         Text(
-          '${widget.loss}% loss',
+          '${loss}% loss',
           style: st,
         )
       ],
