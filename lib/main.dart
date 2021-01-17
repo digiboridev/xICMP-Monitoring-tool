@@ -24,19 +24,11 @@ class PingStatsApp extends StatelessWidget {
                 error: Color(0xffFAF338),
                 onPrimary: Color(0xff000000),
                 onSecondary: Color(0xff000000),
-                onSurface: Color(0xff000000),
+                onSurface: Color(0xff1C1C22),
                 onBackground: Color(0xff000000),
                 onError: Color(0xff000000),
                 brightness: Brightness.dark)),
-        home: Provider(
-          create: (_) => HostsDataBloc(),
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text('PingStats monitoring tool'),
-            ),
-            body: MainScreen(),
-          ),
-        ));
+        home: Provider(create: (_) => HostsDataBloc(), child: MainScreen()));
   }
 }
 

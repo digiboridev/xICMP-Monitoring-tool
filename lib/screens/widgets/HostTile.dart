@@ -263,7 +263,7 @@ class _HostTileState extends State<HostTile> {
                             children: [
                               Row(
                                 children: [
-                                  Text('Show last: ',
+                                  Text('Show: ',
                                       style: TextStyle(
                                           color: Color(0xffF5F5F5),
                                           fontSize: 12,

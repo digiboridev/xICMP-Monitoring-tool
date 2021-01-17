@@ -25,6 +25,7 @@ dependencies:
   provider: ^4.3.2+3
   rxdart: ^0.25.0
   easyping: ^1.0.1
+  move_to_background: ^1.0.1
   flutter:
     sdk: flutter
 

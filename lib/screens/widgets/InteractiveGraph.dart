@@ -128,52 +128,40 @@ class GraphPainter extends CustomPainter {
     // For perfomance debug
     int count = 0;
 
-    // Percent of points for optimizations
-    // Last value regulate how many points will display on canvas
-    double pWidth = xList.length / 9000;
-
     // Stopwatch stopwatch = new Stopwatch()..start();
 
     // Drawing loop for ping points
 
+    // Cut outer of screen points fir optimizations
+    // Uses scroll offset from parent to calc it
+    List cutedList = [];
+
     for (var i = 0; i < xList.length; i++) {
       double time = wCalc(xList[i]['time']);
-      int ping = xList[i]['ping'];
+      if (time > scr.offset && time < scr.offset + cWidth) {
+        cutedList.add(xList[i]);
+      }
+    }
 
-      // Optimized hybrid render
+    // Percent of points for optimizations
+    // Last value regulate how many points will display on canvas
+    double pWidth = cutedList.length / 9000;
 
-      if ((time > scr.offset && time < scr.offset + cWidth) &&
-          (i % pWidth < 1)) {
+    for (var i = 0; i < cutedList.length; i++) {
+      double time = wCalc(cutedList[i]['time']);
+      int ping = cutedList[i]['ping'];
+
+      if (i % pWidth < 1) {
         pingLine.moveTo((time), size.height - 16);
         pingLine.lineTo((time), hCalc(ping) + 16);
         count++;
       }
-
-      // Render only points inside vievport and cut others
-
-      // if ((time > scr.offset && time < scr.offset + cWidth)) {
-      //   pingLine.moveTo((time), size.height - 16);
-      //   pingLine.lineTo((time), hCalc(ping) + 16);
-      //   count++;
-      // }
-
-      // Render a percent of points
-
-      // if (i % p < 1 || xList[i]['ping'] > 500) {
-      //   pingLine.moveTo(wCalc(xList[i]['time']), size.height - 16);
-      //   pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']) + 16);
-      //   count++;
-      // }
-
-      // Full render
-      // pingLine.moveTo(wCalc(xList[i]['time']), size.height - 16);
-      // pingLine.lineTo(wCalc(xList[i]['time']), hCalc(xList[i]['ping']) + 16);
     }
 
     // Drawing loop for time
     // Calculate time points by percent of width
 
-    for (double i = 0; i < 0.9; i += (1 / (scale.floor() * 10))) {
+    for (double i = 0; i < 0.99; i += (1 / (scale.floor() * 10))) {
       // Cut other optimization
       if ((scr.offset) / size.width < i &&
           (scr.offset + cWidth) / size.width > i) {
@@ -204,6 +192,7 @@ class GraphPainter extends CustomPainter {
     }
 
     // print(count);
+    // print(cutedList.length);
     // print('executed in ${stopwatch.elapsed}');
 
     // Set opacity lowest by increasing number of points
