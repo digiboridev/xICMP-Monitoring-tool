@@ -7,6 +7,8 @@ import 'package:pingstats/repository/bloc/HostsDataBloc.dart';
 import 'package:pingstats/screens/widgets/BlinkingCircle.dart';
 import 'package:pingstats/screens/widgets/InteractiveGraph.dart';
 import 'package:pingstats/screens/widgets/TileGraph.dart';
+import 'package:pingstats/screens/widgets/TileLatency.dart';
+import 'package:pingstats/screens/widgets/TileSummary.dart';
 import 'package:provider/provider.dart';
 
 class HostTile extends StatefulWidget {
@@ -20,8 +22,9 @@ class HostTile extends StatefulWidget {
 
 class _HostTileState extends State<HostTile> {
   bool expanded = false;
+  Duration selectedPeriod = Duration(hours: 12);
 
-  void doSome() {
+  void ToggleRunning() {
     widget.host.toggleIsolate();
   }
 
@@ -34,14 +37,18 @@ class _HostTileState extends State<HostTile> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    // widget.host.samplesPeriod.listen((event) {
+    //   print(event);
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
+    print('render hostTile');
     return Column(
       children: [
         InkWell(
-          onDoubleTap: doSome,
+          onDoubleTap: ToggleRunning,
           onTap: () {
             setState(() {
               expanded = !expanded;
@@ -50,7 +57,8 @@ class _HostTileState extends State<HostTile> {
           child: Stack(
             children: [
               Container(
-                margin: EdgeInsets.symmetric(horizontal: 16),
+                // color: expanded ? Color(0xff121216) : Color(0xff1C1C22),
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 height: 48,
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
@@ -60,7 +68,7 @@ class _HostTileState extends State<HostTile> {
                       padding: const EdgeInsets.all(8.0),
                       child: Container(
                         child: StreamBuilder(
-                          stream: widget.host.samples,
+                          stream: widget.host.samplesByPeriod,
                           builder: (context, snapshot) {
                             return BlinkingCircle('thumb');
                           },
@@ -80,7 +88,7 @@ class _HostTileState extends State<HostTile> {
                         width: 45,
                         padding: EdgeInsets.only(right: 8),
                         child: StreamBuilder(
-                          stream: widget.host.samples,
+                          stream: widget.host.samplesByPeriod,
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               if (snapshot.data != null) {
@@ -100,7 +108,7 @@ class _HostTileState extends State<HostTile> {
                         width: 50,
                         height: 24,
                         child: StreamBuilder(
-                          stream: widget.host.samples,
+                          stream: widget.host.samplesByPeriod,
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               if (snapshot.data != null) {
@@ -135,7 +143,7 @@ class _HostTileState extends State<HostTile> {
                         height: 48,
                         color: snapshot.data
                             ? null
-                            : Color(0xff1C1C22).withAlpha(200),
+                            : Color(0xff121216).withAlpha(200),
                       ),
                     );
                   }),
@@ -143,96 +151,176 @@ class _HostTileState extends State<HostTile> {
           ),
         ),
         AnimatedContainer(
-            // color: Color(0xff25252D),
-            duration: Duration(milliseconds: 200),
-            height: expanded ? 120 : 0,
-            child: expanded
-                ? StreamBuilder(
-                    stream: widget.host.samples,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        if (snapshot.data != null) {
-                          return InteractiveGraph(snapshot.data);
-                        } else {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                      } else {
-                        return Text('load');
-                      }
-                    },
-                  )
-                : null)
-      ],
-    );
-  }
-}
-
-class TileLatency extends StatefulWidget {
-  // List xList = [];
-  int min = 1000;
-  int max = 0;
-  int avg = 0;
-  int loss = 0;
-
-  TileLatency(List samples) {
-    var rev = samples.reversed;
-
-    int count = 0;
-    int sum = 0;
-
-    for (var item in rev) {
-      // print(item);
-      if (count >= 100) {
-        break;
-      }
-
-      count++;
-
-      num value = item['ping'];
-
-      if (value < min && value > 0) {
-        min = value;
-      }
-
-      if (value > max && value < 1000) {
-        max = value;
-      }
-
-      if (value > 0 && value < 1000) {
-        sum += value;
-      }
-
-      if (value == 0 || value == 1000) {
-        loss++;
-      }
-    }
-    if (count > 0) {
-      avg = (sum / count)?.toInt() ?? 0;
-    }
-  }
-
-  @override
-  _TileLatencyState createState() => _TileLatencyState();
-}
-
-class _TileLatencyState extends State<TileLatency> {
-  TextStyle st = TextStyle(fontSize: 10, fontWeight: FontWeight.w100);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '${widget.avg} avg',
-          style: st,
-        ),
-        Text(
-          '${widget.loss}% loss',
-          style: st,
+          height: expanded ? 270 : 0,
+          duration: Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          child: ClipRRect(
+            child: OverflowBox(
+              maxHeight: 270,
+              child: expanded
+                  ? Column(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: StreamBuilder(
+                              stream: widget.host.samplesPeriod,
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text('Started: ',
+                                            style: TextStyle(
+                                                color: Color(0xffF5F5F5),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w400)),
+                                        Text(
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                    snapshot.data['first'] ?? 0)
+                                                .toString(),
+                                            style: TextStyle(
+                                                color: Color(0xffF5F5F5),
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w400))
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  return Container();
+                                }
+                              }),
+                        ),
+                        Container(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: StreamBuilder(
+                                stream: widget.host.samplesByPeriod,
+                                initialData: [],
+                                builder: (context, snapshot) {
+                                  if (snapshot.data.length > 2) {
+                                    return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 8, horizontal: 8),
+                                        child: TileSummary(snapshot.data));
+                                  } else {
+                                    return Center(
+                                        child: CircularProgressIndicator(
+                                      backgroundColor: Colors.white,
+                                    ));
+                                  }
+                                })),
+                        Container(
+                            // padding: EdgeInsets.symmetric(horizontal: 16),
+                            height: 120,
+                            child: StreamBuilder(
+                              stream: widget.host.samplesByPeriod,
+                              initialData: [],
+                              builder: (context, snapshot) {
+                                if (snapshot.data.length > 2) {
+                                  return InteractiveGraph(snapshot.data);
+                                } else {
+                                  return Center(
+                                      child: CircularProgressIndicator(
+                                    backgroundColor: Colors.white,
+                                  ));
+                                }
+                              },
+                            )),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text('Show last: ',
+                                      style: TextStyle(
+                                          color: Color(0xffF5F5F5),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w400)),
+                                  DropdownButton(
+                                      value: selectedPeriod,
+                                      onChanged: (Duration newValue) {
+                                        setState(() {
+                                          selectedPeriod = newValue;
+                                          widget.host.setPeriod = newValue;
+                                        });
+                                      },
+                                      icon: null,
+                                      style: TextStyle(
+                                          color: Color(0xffF5F5F5),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w400),
+                                      underline: Container(),
+                                      items: [
+                                        DropdownMenuItem(
+                                          child: Text('5 minutes'),
+                                          value: Duration(minutes: 5),
+                                        ),
+                                        DropdownMenuItem(
+                                          child: Text('Hour'),
+                                          value: Duration(hours: 1),
+                                        ),
+                                        DropdownMenuItem(
+                                          child: Text('6 Hours'),
+                                          value: Duration(hours: 6),
+                                        ),
+                                        DropdownMenuItem(
+                                          child: Text('12 Hours'),
+                                          value: Duration(hours: 12),
+                                        ),
+                                        DropdownMenuItem(
+                                          child: Text('1 day'),
+                                          value: Duration(days: 1),
+                                        ),
+                                        DropdownMenuItem(
+                                          child: Text('3 Days'),
+                                          value: Duration(days: 3),
+                                        ),
+                                        DropdownMenuItem(
+                                          child: Text('Week'),
+                                          value: Duration(days: 7),
+                                        )
+                                      ]),
+                                ],
+                              ),
+                              Expanded(
+                                  child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  StreamBuilder(
+                                      stream: widget.host.isOn,
+                                      initialData: false,
+                                      builder: (context, snapshot) {
+                                        return IconButton(
+                                            icon: Icon(
+                                              snapshot.data
+                                                  ? Icons.pause_circle_outline
+                                                  : Icons.play_circle_outline,
+                                              size: 20,
+                                              color: Color(0xffF5F5F5),
+                                            ),
+                                            onPressed: () => ToggleRunning());
+                                      }),
+                                  IconButton(
+                                      icon: Icon(
+                                        Icons.delete_outline,
+                                        size: 20,
+                                        color: Color(0xffF5F5F5),
+                                      ),
+                                      onPressed: () => deleteHost(context))
+                                ],
+                              ))
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : null,
+            ),
+          ),
         )
       ],
     );

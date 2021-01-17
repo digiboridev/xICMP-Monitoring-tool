@@ -14,4 +14,8 @@ abstract class IHostsDB {
   Future<List> sampesByHostId(int hostId);
 
   Future<List> sampesByHostname(String hostname);
+
+  Future<List> getFirstAndLast(int hostId);
+
+  Future<List> getPeriodOfSamples(int hostId, Duration period);
 }

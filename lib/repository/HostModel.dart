@@ -16,15 +16,22 @@ class HostModel {
   ReceivePort _receivePort = ReceivePort();
   StreamSubscription sub;
   bool isStared = false;
+  Duration selectedPeriod = Duration(hours: 12);
 
-  HostModel(this.hostname, this.hostId, this.db) {
+  HostModel(
+    this.hostname,
+    this.hostId,
+    this.db,
+  ) {
     sub = _receivePort.listen((value) {
       print(value);
       addSample(
-          DateTime.now().microsecondsSinceEpoch, double.parse(value).toInt());
+          DateTime.now().millisecondsSinceEpoch, double.parse(value).toInt());
     });
-    updateSamples();
+    // updateSamples();
     updateIsOn();
+    updateSamplesPeriod();
+    updateSamplesByPeriod();
   }
 
   final _isOn = BehaviorSubject<bool>();
@@ -32,6 +39,50 @@ class HostModel {
 
   void updateIsOn() {
     _isOn.sink.add(isStared);
+  }
+
+  // final _samples = BehaviorSubject<List>();
+
+  // Stream<List> get samples => _samples.stream;
+
+  // void updateSamples() async {
+  //   _samples.sink.add(await db.sampesByHostId(hostId));
+  // }
+
+  // Getting samples by period
+
+  final _samplesByPeriod = BehaviorSubject<List>();
+
+  Stream<List> get samplesByPeriod => _samplesByPeriod.stream;
+
+  void updateSamplesByPeriod() async {
+    _samplesByPeriod.sink
+        .add(await db.getPeriodOfSamples(hostId, selectedPeriod));
+  }
+
+  set setPeriod(Duration time) {
+    selectedPeriod = time;
+    updateSamplesByPeriod();
+  }
+
+  // Add new sample to host dase
+
+  void addSample(int time, int ping) async {
+    await db.addSampleToHostById(hostId, time, ping);
+    // updateSamples();
+    updateSamplesPeriod();
+    updateSamplesByPeriod();
+  }
+
+  // Samples period
+  // Provide first and last dates of this host
+
+  final _samplesPeriod = BehaviorSubject<Map>();
+  Stream<Map> get samplesPeriod => _samplesPeriod.stream;
+
+  void updateSamplesPeriod() async {
+    Map answer = (await db.getFirstAndLast(hostId)).first;
+    _samplesPeriod.sink.add(answer);
   }
 
   static Future<double> _pingTo(String adress) async {
@@ -92,26 +143,15 @@ class HostModel {
     // sleep(Duration(seconds: 1));
   }
 
-  final _samples = BehaviorSubject<List>();
-
-  Stream<List> get samples => _samples.stream;
-
-  void updateSamples() async {
-    _samples.sink.add(await db.sampesByHostId(hostId));
-  }
-
-  void addSample(int time, int ping) async {
-    await db.addSampleToHostById(hostId, time, ping);
-    updateSamples();
-  }
-
   void dispose() {
     print('disposed host');
-    _samples.close();
+    // _samples.close();
     sub.cancel();
     _receivePort.close();
     _stopIsolate();
 
     _isOn.close();
+    _samplesPeriod.close();
+    _samplesByPeriod.close();
   }
 }

@@ -24,52 +24,49 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 
   @override
   Widget build(BuildContext context) {
-    // Prevent from glitches
-    if (widget.data.length < 2) {
-      return Container();
-    } else {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        // Some times canvas may draws over container
-        // Hard clip it
-        child: ClipRect(
-          // Scroll children and pass offset to it by using Scrollcontroller
-          child: SingleChildScrollView(
-            controller: scr,
-            scrollDirection: Axis.horizontal,
-            // Detects scale gesture
-            child: GestureDetector(
-              // Hold last values before changes
-              onScaleStart: (details) {
-                prevOffset = scr.offset;
-                prevscale = scale;
-              },
+    print('render gr');
 
-              // Adjust new scale loocking on previous values
-              onScaleUpdate: (details) {
-                setState(() {
-                  // Jump to offset proportionaly to scale
-                  double asd = prevOffset * details.scale;
-                  scr.jumpTo(asd);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      // Some times canvas may draws over container
+      // Hard clip it
+      child: ClipRect(
+        // Scroll children and pass offset to it by using Scrollcontroller
+        child: SingleChildScrollView(
+          controller: scr,
+          scrollDirection: Axis.horizontal,
+          // Detects scale gesture
+          child: GestureDetector(
+            // Hold last values before changes
+            onScaleStart: (details) {
+              prevOffset = scr.offset;
+              prevscale = scale;
+            },
 
-                  // Adjust scale
-                  scale = prevscale * details.scale;
-                  scale < 1.0 ? scale = 1 : scale = scale;
-                });
-              },
-              child: Container(
-                // Grow conteiner width depend on scale value
-                width: (MediaQuery.of(context).size.width - 32) * scale,
-                child: CustomPaint(
-                  painter: GraphPainter(widget.data, scale, scr,
-                      (MediaQuery.of(context).size.width - 32)),
-                ),
+            // Adjust new scale loocking on previous values
+            onScaleUpdate: (details) {
+              setState(() {
+                // Jump to offset proportionaly to scale
+                double asd = prevOffset * details.scale;
+                scr.jumpTo(asd);
+
+                // Adjust scale
+                scale = prevscale * details.scale;
+                scale < 1.0 ? scale = 1 : scale = scale;
+              });
+            },
+            child: Container(
+              // Grow conteiner width depend on scale value
+              width: (MediaQuery.of(context).size.width - 32) * scale,
+              child: CustomPaint(
+                painter: GraphPainter(widget.data, scale, scr,
+                    (MediaQuery.of(context).size.width - 32)),
               ),
             ),
           ),
         ),
-      );
-    }
+      ),
+    );
   }
 }
 
@@ -121,7 +118,7 @@ class GraphPainter extends CustomPainter {
     // Last value regulate how many points will display on canvas
     double pWidth = xList.length / 9000;
 
-    Stopwatch stopwatch = new Stopwatch()..start();
+    // Stopwatch stopwatch = new Stopwatch()..start();
 
     // Drawing loop for ping points
 
@@ -172,7 +169,7 @@ class GraphPainter extends CustomPainter {
 
         // Calc time by percent of with
         double timeNum = last - timeDiff * i;
-        DateTime time = DateTime.fromMicrosecondsSinceEpoch(timeNum.toInt());
+        DateTime time = DateTime.fromMillisecondsSinceEpoch(timeNum.toInt());
 
         // Draw text with time
         TextSpan span = new TextSpan(

@@ -4,7 +4,7 @@ import 'package:sqflite/sqflite.dart';
 class SqfDB implements IHostsDB {
   Database _db;
 
-  void _init() async {
+  Future _init() async {
     print('init db');
     _db = await openDatabase('main7.db', version: 1,
         onCreate: (Database db, int version) async {
@@ -25,8 +25,8 @@ class SqfDB implements IHostsDB {
 
   Future<void> deleteHostById(int hostId) async {
     _db ?? await _init();
-    await _db.execute('DROP TABLE Host_$hostId');
     await _db.execute('DELETE FROM Hostnames WHERE id = "$hostId"');
+    await _db.execute('DROP TABLE Host_$hostId');
   }
 
   Future<void> deleteHostByName(String hostname) async {
@@ -66,5 +66,26 @@ class SqfDB implements IHostsDB {
     int hostId = (await _db.rawQuery(
         'SELECT id FROM Hostnames WHERE host = "$hostname"'))[0]['id'];
     return await sampesByHostId(hostId);
+  }
+
+  Future<List> getFirstAndLast(int hostId) async {
+    _db ?? await _init();
+    return await _db.rawQuery(
+        'SELECT MIN(time) as first ,MAX(time) as last FROM Host_$hostId');
+  }
+
+  Future<List> getPeriodOfSamples(int hostId, Duration period) async {
+    int numPeriod = period.inMilliseconds;
+    _db ?? await _init();
+    List fQuery = await _db
+        .rawQuery('SELECT * FROM Host_$hostId ORDER BY time DESC LIMIT 1');
+    if (fQuery.isEmpty) {
+      return await _db.rawQuery('SELECT time , ping FROM Host_$hostId');
+    } else {
+      int fTime = fQuery.first['time'];
+      int dif = fTime - numPeriod;
+      return await _db
+          .rawQuery('SELECT time , ping FROM Host_$hostId WHERE time > $dif');
+    }
   }
 }

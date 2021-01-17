@@ -73,41 +73,41 @@ class _MainScreenState extends State<MainScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
-          Container(
-            height: 36,
-            child: Row(
-              children: [
-                IconButton(
-                    icon: Icon(
-                      Icons.play_arrow,
-                      color: Color(0xffEBEBEB),
-                    ),
-                    tooltip: 'Start all',
-                    onPressed: startAll),
-                IconButton(
-                    icon: Icon(
-                      Icons.stop,
-                      color: Color(0xffEBEBEB),
-                    ),
-                    tooltip: 'Stop all',
-                    onPressed: stopAll),
-                IconButton(
-                    icon: Icon(
-                      Icons.add,
-                      color: Color(0xffEBEBEB),
-                    ),
-                    tooltip: 'Add host',
-                    onPressed: addDialog),
-                IconButton(
-                    icon: Icon(
-                      Icons.do_disturb_sharp,
-                      color: Color(0xffEBEBEB),
-                    ),
-                    tooltip: 'Delete all',
-                    onPressed: deleteAll)
-              ],
-            ),
-          ),
+          // Container(
+          //   height: 36,
+          //   child: Row(
+          //     children: [
+          //       IconButton(
+          //           icon: Icon(
+          //             Icons.play_arrow,
+          //             color: Color(0xffEBEBEB),
+          //           ),
+          //           tooltip: 'Start all',
+          //           onPressed: startAll),
+          //       IconButton(
+          //           icon: Icon(
+          //             Icons.stop,
+          //             color: Color(0xffEBEBEB),
+          //           ),
+          //           tooltip: 'Stop all',
+          //           onPressed: stopAll),
+          //       IconButton(
+          //           icon: Icon(
+          //             Icons.add,
+          //             color: Color(0xffEBEBEB),
+          //           ),
+          //           tooltip: 'Add host',
+          //           onPressed: addDialog),
+          //       IconButton(
+          //           icon: Icon(
+          //             Icons.do_disturb_sharp,
+          //             color: Color(0xffEBEBEB),
+          //           ),
+          //           tooltip: 'Delete all',
+          //           onPressed: deleteAll)
+          //     ],
+          //   ),
+          // ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
