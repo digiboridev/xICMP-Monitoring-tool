@@ -17,6 +17,7 @@ class HostModel {
   StreamSubscription sub;
   bool isStared = false;
   Duration selectedPeriod = Duration(hours: 12);
+  int updatesCounter = 0;
 
   HostModel(
     this.hostname,
@@ -34,6 +35,7 @@ class HostModel {
     updateSamplesByPeriod();
   }
 
+  // Stream indicates sampling status
   final _isOn = BehaviorSubject<bool>();
   Stream<bool> get isOn => _isOn.stream;
 
@@ -41,15 +43,7 @@ class HostModel {
     _isOn.sink.add(isStared);
   }
 
-  // final _samples = BehaviorSubject<List>();
-
-  // Stream<List> get samples => _samples.stream;
-
-  // void updateSamples() async {
-  //   _samples.sink.add(await db.sampesByHostId(hostId));
-  // }
-
-  // Getting samples by period
+  // Stream return samples by period of time setted manualy
 
   final _samplesByPeriod = BehaviorSubject<List>();
 
@@ -60,18 +54,49 @@ class HostModel {
         .add(await db.getPeriodOfSamples(hostId, selectedPeriod));
   }
 
+  // Set period of time for stream
+
   set setPeriod(Duration time) {
     selectedPeriod = time;
     updateSamplesByPeriod();
   }
 
-  // Add new sample to host dase
+  // Stream samples from last minute
 
+  final _lastSamples = BehaviorSubject<List>();
+
+  Stream<List> get lastSamples => _lastSamples.stream;
+
+  void updateLastSamples() async {
+    _lastSamples.sink
+        .add(await db.getPeriodOfSamples(hostId, Duration(minutes: 2)));
+  }
+
+  // Add new sample to host base
   void addSample(int time, int ping) async {
     await db.addSampleToHostById(hostId, time, ping);
-    // updateSamples();
-    updateSamplesPeriod();
-    updateSamplesByPeriod();
+
+    // Updates every time
+    blinkIndicator();
+    updateLastSamples();
+
+    // Counter uses for reduce updates on large data
+    updatesCounter++;
+    // Updates only when counter equals 5 or 25 if duration over than3 hours
+    if (selectedPeriod < Duration(hours: 3)) {
+      updateSamplesByPeriod();
+    } else if (selectedPeriod < Duration(hours: 12)) {
+      if (updatesCounter % 5 == 0) {
+        updateSamplesByPeriod();
+      }
+    } else {
+      if (updatesCounter % 25 == 0) {
+        updateSamplesByPeriod();
+        updatesCounter = 0;
+      }
+    }
+
+    print(updatesCounter);
   }
 
   // Samples period
@@ -83,6 +108,16 @@ class HostModel {
   void updateSamplesPeriod() async {
     Map answer = (await db.getFirstAndLast(hostId)).first;
     _samplesPeriod.sink.add(answer);
+  }
+
+  // Update indicator
+  // Just use for blinking when new data added
+
+  final _updateIndicator = BehaviorSubject<bool>();
+  Stream<bool> get updateIndicator => _updateIndicator.stream;
+
+  void blinkIndicator() {
+    _updateIndicator.sink.add(true);
   }
 
   static Future<double> _pingTo(String adress) async {
@@ -153,5 +188,7 @@ class HostModel {
     _isOn.close();
     _samplesPeriod.close();
     _samplesByPeriod.close();
+    _updateIndicator.close();
+    _lastSamples.close();
   }
 }

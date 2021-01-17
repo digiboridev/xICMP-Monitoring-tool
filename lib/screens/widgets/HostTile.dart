@@ -20,7 +20,7 @@ class HostTile extends StatefulWidget {
 
 class _HostTileState extends State<HostTile> {
   bool expanded = false;
-  Duration selectedPeriod = Duration(hours: 12);
+  Duration selectedPeriod = Duration(hours: 1);
   List<DropdownMenuItem<Duration>> periodDropdownList = [
     DropdownMenuItem(
       child: Text('5 minutes'),
@@ -96,7 +96,7 @@ class _HostTileState extends State<HostTile> {
                       padding: const EdgeInsets.all(8.0),
                       child: Container(
                         child: StreamBuilder(
-                          stream: widget.host.samplesByPeriod,
+                          stream: widget.host.updateIndicator,
                           builder: (context, snapshot) {
                             return BlinkingCircle('thumb');
                           },
@@ -116,7 +116,7 @@ class _HostTileState extends State<HostTile> {
                         width: 50,
                         padding: EdgeInsets.only(right: 8),
                         child: StreamBuilder(
-                          stream: widget.host.samplesByPeriod,
+                          stream: widget.host.lastSamples,
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               if (snapshot.data != null) {
@@ -136,7 +136,7 @@ class _HostTileState extends State<HostTile> {
                         width: 50,
                         height: 24,
                         child: StreamBuilder(
-                          stream: widget.host.samplesByPeriod,
+                          stream: widget.host.lastSamples,
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               if (snapshot.data != null) {
