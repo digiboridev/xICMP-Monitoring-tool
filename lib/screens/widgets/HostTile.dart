@@ -20,15 +20,15 @@ class HostTile extends StatefulWidget {
 
 class _HostTileState extends State<HostTile> {
   bool expanded = false;
-  Duration selectedPeriod = Duration(hours: 1);
+  Duration selectedPeriod = Duration(hours: 3);
   List<DropdownMenuItem<Duration>> periodDropdownList = [
     DropdownMenuItem(
-      child: Text('5 minutes'),
+      child: Text('30 mins'),
       value: Duration(minutes: 5),
     ),
     DropdownMenuItem(
-      child: Text('Hour'),
-      value: Duration(hours: 1),
+      child: Text('3 Hours'),
+      value: Duration(hours: 3),
     ),
     DropdownMenuItem(
       child: Text('6 Hours'),

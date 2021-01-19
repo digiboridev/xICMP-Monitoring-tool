@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_plugin/flutter_foreground_plugin.dart';
 import 'package:move_to_background/move_to_background.dart';
 import 'package:pingstats/repository/WakelockService.dart';
 import 'package:pingstats/repository/bloc/HostsDataBloc.dart';
@@ -203,7 +204,11 @@ class _MainScreenState extends State<MainScreen> {
                             padding: const EdgeInsets.all(8.0),
                             child: FlatButton(
                                 color: Color(0xff1C1C22),
-                                onPressed: () => exit(0),
+                                onPressed: () async {
+                                  await FlutterForegroundPlugin
+                                      .stopForegroundService();
+                                  exit(0);
+                                },
                                 child: Row(
                                   children: [
                                     Padding(

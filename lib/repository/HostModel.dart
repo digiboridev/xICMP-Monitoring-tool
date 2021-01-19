@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math';
 
 import 'package:pingstats/repository/IhostDB.dart';
 import 'package:pingstats/repository/WakelockService.dart';
@@ -17,7 +18,7 @@ class HostModel {
   ReceivePort _receivePort = ReceivePort();
   StreamSubscription sub;
   bool isStared = false;
-  Duration selectedPeriod = Duration(hours: 1);
+  Duration selectedPeriod = Duration(hours: 3);
   int updatesCounter = 0;
   int lengthOfsamples = 0;
   WakelockService wakelockService = WakelockService();
@@ -145,12 +146,12 @@ class HostModel {
     print('Isolate started with: ' + msg.toString());
 
     void tick() async {
-      // int rand = Random().nextInt(1000);
-      // sleep(Duration(milliseconds: rand));
-      // msg['rp'].send(rand.toString());
+      int rand = Random().nextInt(1000);
+      sleep(Duration(milliseconds: rand));
+      msg['rp'].send(rand.toString());
 
-      double pingToAddress = await _pingTo(msg['host']);
-      msg['rp'].send(pingToAddress.toString());
+      // double pingToAddress = await _pingTo(msg['host']);
+      // msg['rp'].send(pingToAddress.toString());
 
       Timer(new Duration(seconds: msg['interval']), tick);
     }
