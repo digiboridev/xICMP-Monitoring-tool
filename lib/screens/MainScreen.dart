@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:move_to_background/move_to_background.dart';
+import 'package:pingstats/repository/WakelockService.dart';
 import 'package:pingstats/repository/bloc/HostsDataBloc.dart';
 import 'package:pingstats/screens/widgets/HostTile.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen({Key key}) : super(key: key);
@@ -15,16 +17,32 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   HostsDataBloc bloc;
-  bool wakelock = true;
+  WakelockService wakelockService = WakelockService();
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     bloc = context.read<HostsDataBloc>();
-    // bloc.hosts.listen((event) {
-    //   event.then((value) => print(value));
-    // });
+    loadWakelock();
+  }
+
+  //Loading wakelock bool
+  loadWakelock() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      print(prefs.getBool('wake'));
+      bool w = prefs.getBool('wake') ?? true;
+      wakelockService.wakelockOn = w;
+    });
+  }
+
+  // Set wakelock bool and save to storage
+  setWakelock(bool b) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('wake', b);
+    setState(() {
+      wakelockService.wakelockOn = b;
+    });
   }
 
   void startAll() {
@@ -205,11 +223,9 @@ class _MainScreenState extends State<MainScreen> {
                                 Text('WakeLock'),
                                 Switch(
                                     activeColor: Color(0xffDB5762),
-                                    value: wakelock,
+                                    value: wakelockService.wakelockOn,
                                     onChanged: (b) {
-                                      setState(() {
-                                        wakelock = b;
-                                      });
+                                      setWakelock(b);
                                     }),
                               ],
                             ),

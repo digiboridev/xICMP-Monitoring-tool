@@ -51,7 +51,7 @@ class TileSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text('AVG: ${avg}ms  MIN: ${min}ms  MAX: ${max}ms  LOSS: ${lossP}%',
+        Text('AVG: ${avg} ms  MIN: ${min} ms  MAX: ${max} ms  LOSS: ${lossP}%',
             style: TextStyle(
                 color: Color(0xffF5F5F5),
                 fontSize: 12,

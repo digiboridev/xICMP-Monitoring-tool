@@ -26,6 +26,8 @@ dependencies:
   rxdart: ^0.25.0
   easyping: ^1.0.1
   move_to_background: ^1.0.1
+  shared_preferences: ^0.5.12+4
+  flutter_foreground_plugin: ^0.6.0
   flutter:
     sdk: flutter
 

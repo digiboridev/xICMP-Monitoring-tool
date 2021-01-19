@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math';
 
 import 'package:pingstats/repository/IhostDB.dart';
+import 'package:pingstats/repository/WakelockService.dart';
 import 'package:rxdart/rxdart.dart';
 
 class IsolateParams {}
@@ -13,11 +13,14 @@ class HostModel {
   final int hostId;
   final IHostsDB db;
   Isolate _isolate;
+  bool pendingIsolate = false;
   ReceivePort _receivePort = ReceivePort();
   StreamSubscription sub;
   bool isStared = false;
-  Duration selectedPeriod = Duration(hours: 12);
+  Duration selectedPeriod = Duration(hours: 1);
   int updatesCounter = 0;
+  int lengthOfsamples = 0;
+  WakelockService wakelockService = WakelockService();
 
   HostModel(
     this.hostname,
@@ -29,10 +32,10 @@ class HostModel {
       addSample(
           DateTime.now().millisecondsSinceEpoch, double.parse(value).toInt());
     });
-    // updateSamples();
     updateIsOn();
     updateSamplesPeriod();
     updateSamplesByPeriod();
+    updateLastSamples();
   }
 
   // Stream indicates sampling status
@@ -50,8 +53,9 @@ class HostModel {
   Stream<List> get samplesByPeriod => _samplesByPeriod.stream;
 
   void updateSamplesByPeriod() async {
-    _samplesByPeriod.sink
-        .add(await db.getPeriodOfSamples(hostId, selectedPeriod));
+    List result = await db.getPeriodOfSamples(hostId, selectedPeriod);
+    lengthOfsamples = result.length;
+    _samplesByPeriod.sink.add(result);
   }
 
   // Set period of time for stream
@@ -81,22 +85,24 @@ class HostModel {
     updateLastSamples();
 
     // Counter uses for reduce updates on large data
+    // Skipping updates if length over 3k and more
     updatesCounter++;
-    // Updates only when counter equals 5 or 25 if duration over than3 hours
-    if (selectedPeriod < Duration(hours: 3)) {
+    if (lengthOfsamples < 3000) {
       updateSamplesByPeriod();
-    } else if (selectedPeriod < Duration(hours: 12)) {
-      if (updatesCounter % 5 == 0) {
+    } else if (lengthOfsamples < 6000) {
+      if (updatesCounter > 5) {
         updateSamplesByPeriod();
+        updatesCounter = 0;
       }
     } else {
-      if (updatesCounter % 25 == 0) {
+      if (updatesCounter > 25) {
         updateSamplesByPeriod();
         updatesCounter = 0;
       }
     }
 
-    print(updatesCounter);
+    // print(updatesCounter);
+    // print(lengthOfsamples);
   }
 
   // Samples period
@@ -120,6 +126,7 @@ class HostModel {
     _updateIndicator.sink.add(true);
   }
 
+  // ICMP ping realization throught vw prosess
   static Future<double> _pingTo(String adress) async {
     ProcessResult result =
         await Process.run('ping', ['-c', '1', '-W', '1', adress]);
@@ -133,7 +140,8 @@ class HostModel {
     }
   }
 
-  static void isolate(msg) {
+  // Isolate function
+  static void pingIsolate(msg) {
     print('Isolate started with: ' + msg.toString());
 
     void tick() async {
@@ -150,25 +158,40 @@ class HostModel {
     tick();
   }
 
+  // Starting isolate with pending previous start
   Future _startIsolate() async {
-    isStared = true;
-    _isolate = await Isolate.spawn(isolate,
-        {'rp': _receivePort.sendPort, 'host': hostname, 'interval': 1});
+    // Check for isolate spawning
+    if (pendingIsolate) {
+      print('is pending');
+      return;
+    }
+    print('not pending');
+
+    // Indicates that isolate spawning
+    pendingIsolate = true;
+
+    try {
+      _isolate = await Isolate.spawn(pingIsolate,
+          {'rp': _receivePort.sendPort, 'host': hostname, 'interval': 1});
+    } finally {
+      pendingIsolate = false;
+      isStared = true;
+      wakelockService.addIsolate(hostId);
+    }
     updateIsOn();
   }
 
+  // Kill isolate and indicate as stop
   Future _stopIsolate() async {
-    if (_isolate == null) {
-      // print('Provider Isolate kill tick');
-      Timer(Duration(milliseconds: 1), _stopIsolate);
-    } else {
-      _isolate.kill();
-      _isolate = null;
-      isStared = false;
-      updateIsOn();
-    }
+    print('Killing isolate');
+    _isolate.kill();
+    _isolate = null;
+    isStared = false;
+    updateIsOn();
+    wakelockService.deleteIsolate(hostId);
   }
 
+  // Toggler
   Future toggleIsolate() async {
     if (isStared == false) {
       await _startIsolate();
