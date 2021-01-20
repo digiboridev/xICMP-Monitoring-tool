@@ -122,7 +122,7 @@ class WakelockService {
       },
       title: "Flutter Foreground Service",
       content: "This is Content",
-      iconName: "ic_stat_power_settings_new",
+      iconName: "ic_stat_new_icon_cut",
     );
   }
 
