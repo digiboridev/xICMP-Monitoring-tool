@@ -3,6 +3,8 @@ import 'package:sqflite/sqflite.dart';
 
 class SqfDB implements IHostsDB {
   Database _db;
+  Duration expirePeriod = Duration(days: 3);
+  int expireCounter = 0;
 
   Future _init() async {
     print('init db');
@@ -41,6 +43,8 @@ class SqfDB implements IHostsDB {
     _db ?? await _init();
     await _db.rawInsert(
         'INSERT INTO Host_$hostId("time","ping") VALUES("$time","$ping")');
+
+    await checkExpired();
   }
 
   Future<void> addSampleToHostByName(
@@ -78,19 +82,28 @@ class SqfDB implements IHostsDB {
     int numPeriod = period.inMilliseconds;
     _db ?? await _init();
 
-    List fQuery = await _db
-        .rawQuery('SELECT * FROM Host_$hostId ORDER BY time DESC LIMIT 1');
+    return await _db.rawQuery(
+        'SELECT time , ping FROM Host_$hostId WHERE time > (SELECT MAX(time) - $numPeriod FROM Host_$hostId)');
+  }
 
-    // print(
-    //     await _db.rawQuery('SELECT * FROM Host_$hostId ORDER BY time LIMIT 1'));
+  Future autoDelete() async {
+    int numPeriod = expirePeriod.inMilliseconds;
 
-    if (fQuery.isEmpty) {
-      return await _db.rawQuery('SELECT time , ping FROM Host_$hostId');
-    } else {
-      int fTime = fQuery.first['time'];
-      int dif = fTime - numPeriod;
-      return await _db
-          .rawQuery('SELECT time , ping FROM Host_$hostId WHERE time > $dif');
+    List hostList = await _db.rawQuery('SELECT * FROM Hostnames');
+
+    hostList.forEach((element) async {
+      int id = element['id'];
+      await _db.rawQuery(
+          'DELETE FROM Host_$id WHERE time < (SELECT MAX(time) - $numPeriod FROM Host_$id)');
+    });
+  }
+
+  Future checkExpired() async {
+    expireCounter++;
+
+    if (expireCounter > 10000) {
+      await autoDelete();
+      expireCounter = 0;
     }
   }
 }
