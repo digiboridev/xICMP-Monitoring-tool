@@ -120,8 +120,8 @@ class WakelockService {
       onStopped: () {
         print("Foreground on Stopped");
       },
-      title: "Flutter Foreground Service",
-      content: "This is Content",
+      title: "ICMP Stats Foreground Service",
+      content: "Monitoring: ${activeIsolates.length} hosts",
       iconName: "ic_stat_new_icon_cut",
     );
   }
