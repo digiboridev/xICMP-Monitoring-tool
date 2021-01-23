@@ -89,6 +89,7 @@ class HostModel {
     // Skipping updates if length over 3k and more
     updatesCounter++;
     if (lengthOfsamples < 3000) {
+      // print('asdasd');
       updateSamplesByPeriod();
     } else if (lengthOfsamples < 6000) {
       if (updatesCounter > 5) {

@@ -77,8 +77,13 @@ class SqfDB implements IHostsDB {
   Future<List> getPeriodOfSamples(int hostId, Duration period) async {
     int numPeriod = period.inMilliseconds;
     _db ?? await _init();
+
     List fQuery = await _db
         .rawQuery('SELECT * FROM Host_$hostId ORDER BY time DESC LIMIT 1');
+
+    // print(
+    //     await _db.rawQuery('SELECT * FROM Host_$hostId ORDER BY time LIMIT 1'));
+
     if (fQuery.isEmpty) {
       return await _db.rawQuery('SELECT time , ping FROM Host_$hostId');
     } else {

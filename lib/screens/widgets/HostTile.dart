@@ -233,10 +233,7 @@ class _HostTileState extends State<HostTile> {
                                             vertical: 8, horizontal: 8),
                                         child: TileSummary(snapshot.data));
                                   } else {
-                                    return Center(
-                                        child: CircularProgressIndicator(
-                                      backgroundColor: Colors.white,
-                                    ));
+                                    return Container();
                                   }
                                 })),
                         Container(
