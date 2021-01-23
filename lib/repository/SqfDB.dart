@@ -3,12 +3,13 @@ import 'package:sqflite/sqflite.dart';
 
 class SqfDB implements IHostsDB {
   Database _db;
-  Duration expirePeriod = Duration(days: 3);
-  int expireCounter = 0;
+  Duration _expirePeriod = Duration(days: 3);
+  int _expireCounter = 0;
 
+  // Load or create db if empty
   Future _init() async {
     print('init db');
-    _db = await openDatabase('main7.db', version: 1,
+    _db = await openDatabase('ping.db', version: 1,
         onCreate: (Database db, int version) async {
       print('creating new db');
       await db.execute(
@@ -16,6 +17,7 @@ class SqfDB implements IHostsDB {
     });
   }
 
+  // Add host id to hosts table and create host table
   Future<int> addHost(String hostname) async {
     _db ?? await _init();
     int hostId = await _db
@@ -25,12 +27,14 @@ class SqfDB implements IHostsDB {
     return hostId;
   }
 
+  // Delete host table and remove from table of hosts
   Future<void> deleteHostById(int hostId) async {
     _db ?? await _init();
     await _db.execute('DELETE FROM Hostnames WHERE id = "$hostId"');
     await _db.execute('DROP TABLE Host_$hostId');
   }
 
+  // Same thing but by name
   Future<void> deleteHostByName(String hostname) async {
     _db ?? await _init();
     int hostId = (await _db.rawQuery(
@@ -39,14 +43,16 @@ class SqfDB implements IHostsDB {
     await deleteHostById(hostId);
   }
 
+  // Add sample to host table by hist id
   Future<void> addSampleToHostById(int hostId, int time, int ping) async {
     _db ?? await _init();
     await _db.rawInsert(
         'INSERT INTO Host_$hostId("time","ping") VALUES("$time","$ping")');
 
-    await checkExpired();
+    await _checkExpired();
   }
 
+  // Same thing but by name
   Future<void> addSampleToHostByName(
       String hostname, int time, int ping) async {
     _db ?? await _init();
@@ -55,16 +61,19 @@ class SqfDB implements IHostsDB {
     await addSampleToHostById(hostId, time, ping);
   }
 
+  // Return list of host ids and names
   Future<List> get hosts async {
     _db ?? await _init();
     return await _db.rawQuery('SELECT * FROM Hostnames');
   }
 
+  // Return all samples in host table
   Future<List> sampesByHostId(int hostId) async {
     _db ?? await _init();
     return await _db.rawQuery('SELECT * FROM Host_$hostId');
   }
 
+  // Same thing but by name
   Future<List> sampesByHostname(String hostname) async {
     _db ?? await _init();
     int hostId = (await _db.rawQuery(
@@ -72,12 +81,14 @@ class SqfDB implements IHostsDB {
     return await sampesByHostId(hostId);
   }
 
+  // Return first and last sample from host table
   Future<List> getFirstAndLast(int hostId) async {
     _db ?? await _init();
     return await _db.rawQuery(
         'SELECT MIN(time) as first ,MAX(time) as last FROM Host_$hostId');
   }
 
+  // Return samples that are only in the specified period
   Future<List> getPeriodOfSamples(int hostId, Duration period) async {
     int numPeriod = period.inMilliseconds;
     _db ?? await _init();
@@ -86,8 +97,9 @@ class SqfDB implements IHostsDB {
         'SELECT time , ping FROM Host_$hostId WHERE time > (SELECT MAX(time) - $numPeriod FROM Host_$hostId)');
   }
 
-  Future autoDelete() async {
-    int numPeriod = expirePeriod.inMilliseconds;
+  // Detele expired samples in all host tables
+  Future _autoDelete() async {
+    int numPeriod = _expirePeriod.inMilliseconds;
 
     List hostList = await _db.rawQuery('SELECT * FROM Hostnames');
 
@@ -98,12 +110,13 @@ class SqfDB implements IHostsDB {
     });
   }
 
-  Future checkExpired() async {
-    expireCounter++;
+  // Trigger autodelete after 10000 uses for optimization
+  Future _checkExpired() async {
+    _expireCounter++;
 
-    if (expireCounter > 10000) {
-      await autoDelete();
-      expireCounter = 0;
+    if (_expireCounter > 10000) {
+      await _autoDelete();
+      _expireCounter = 0;
     }
   }
 }
