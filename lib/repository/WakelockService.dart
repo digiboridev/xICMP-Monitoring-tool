@@ -120,7 +120,7 @@ class WakelockService {
       onStopped: () {
         print("Foreground on Stopped");
       },
-      title: "ICMP Stats Foreground Service",
+      title: "Foreground service running",
       content: "Monitoring: ${activeIsolates.length} hosts",
       iconName: "ic_stat_new_icon_cut",
     );

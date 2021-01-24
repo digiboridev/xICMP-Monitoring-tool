@@ -243,7 +243,7 @@ class _MainScreenState extends State<MainScreen> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text('PingStats 1.0'),
+                            child: Text('xICMP mt 1.0'),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
