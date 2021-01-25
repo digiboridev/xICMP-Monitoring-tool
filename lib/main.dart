@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pingstats/repository/bloc/HostsDataBloc.dart';
 import 'package:pingstats/screens/MainScreen.dart';
 import 'package:provider/provider.dart';
-import 'package:sqflite/utils/utils.dart';
 
 void main() {
   runApp(PingStatsApp());
@@ -12,6 +11,7 @@ class PingStatsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'PingStats',
         theme: ThemeData.from(
             colorScheme: ColorScheme(

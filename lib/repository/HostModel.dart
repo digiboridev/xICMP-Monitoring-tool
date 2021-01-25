@@ -200,15 +200,16 @@ class HostModel {
     } else {
       await _stopIsolate();
     }
-    // sleep(Duration(seconds: 1));
   }
 
   void dispose() {
     print('disposed host');
-    // _samples.close();
     sub.cancel();
     _receivePort.close();
-    _stopIsolate();
+
+    if (isStared) {
+      _stopIsolate();
+    }
 
     _isOn.close();
     _samplesPeriod.close();
