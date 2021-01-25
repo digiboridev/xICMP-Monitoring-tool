@@ -16,6 +16,8 @@ This is a helpful tool that makes service staff job more easier and network ISPs
   - Plotting precise graphs
   
   
+  ![screenshot](https://github.com/digiborimusik/xICMP-Monitoring-tool/blob/main/md/bg.jpg)
+  
   
 # Installation
 [Download](https://github.com/digiborimusik/xICMP-Monitoring-tool/releases/tag/xICMPmt) last version.
