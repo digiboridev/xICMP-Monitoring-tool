@@ -13,7 +13,7 @@ This is a helpful tool that makes service staff job more easier and network ISPs
   - Realtime latency
   - Background logging
   - Useful interface
-  - Showing precise data
+  - Plotting precise graphs
   
   
   
