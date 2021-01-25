@@ -18,7 +18,7 @@ This is a helpful tool that makes service staff job more easier and network ISPs
   
   
 # Installation
-[Download](https://github.com/digiborimusik/xDSL-Monitoring-tool/releases/tag/xDSLmt) last version.
+[Download](https://github.com/digiborimusik/xICMP-Monitoring-tool/releases/tag/xICMPmt) last version.
 
 Install apk file.
 
