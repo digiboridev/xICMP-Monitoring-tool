@@ -20,7 +20,7 @@ This is a helpful tool that makes network staff job more easier and network ISPs
   
   
 # Installation
-[Download](https://github.com/digiborimusik/xICMP-Monitoring-tool/releases/tag/xICMPmt) last version.
+[Download](https://github.com/digiborimusik/xICMP-Monitoring-tool/releases/) last version.
 
 Install apk file.
 
