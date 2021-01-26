@@ -4,7 +4,7 @@
 
 xICMP Monitoring tool is an android app for monitoring latency to remote hosts in background.
 It works with ICMP ping using android vm interface. Data is displayed in graphical form and can be used to identify problems with network lines and routing devices. 
-This is a helpful tool that makes service staff job more easier and network ISPs happier.
+This is a helpful tool that makes network staff job more easier and network ISPs happier.
 
 
 
@@ -15,6 +15,8 @@ This is a helpful tool that makes service staff job more easier and network ISPs
   - Useful interface
   - Plotting precise graphs
   
+  
+  ![screenshot](https://github.com/digiborimusik/xICMP-Monitoring-tool/blob/main/md/bg.jpg)
   
   
 # Installation
