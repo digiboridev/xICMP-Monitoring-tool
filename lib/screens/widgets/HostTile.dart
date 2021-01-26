@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:pingstats/repository/HostModel.dart';
-import 'package:pingstats/repository/bloc/HostsDataBloc.dart';
-import 'package:pingstats/screens/widgets/BlinkingCircle.dart';
-import 'package:pingstats/screens/widgets/InteractiveGraph.dart';
-import 'package:pingstats/screens/widgets/TileGraph.dart';
-import 'package:pingstats/screens/widgets/TileLatency.dart';
-import 'package:pingstats/screens/widgets/TileSummary.dart';
 import 'package:provider/provider.dart';
+import 'package:xICMP_Monitoring_tool/repository/HostModel.dart';
+import 'package:xICMP_Monitoring_tool/repository/bloc/HostsDataBloc.dart';
+import 'package:xICMP_Monitoring_tool/screens/widgets/BlinkingCircle.dart';
+import 'package:xICMP_Monitoring_tool/screens/widgets/InteractiveGraph.dart';
+import 'package:xICMP_Monitoring_tool/screens/widgets/TileGraph.dart';
+import 'package:xICMP_Monitoring_tool/screens/widgets/TileLatency.dart';
+import 'package:xICMP_Monitoring_tool/screens/widgets/TileSummary.dart';
 
 class HostTile extends StatefulWidget {
   final HostModel host;

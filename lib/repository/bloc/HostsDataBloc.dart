@@ -1,6 +1,6 @@
-import 'package:pingstats/repository/HostModel.dart';
-import 'package:pingstats/repository/HostsRepo.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:xICMP_Monitoring_tool/repository/HostModel.dart';
+import 'package:xICMP_Monitoring_tool/repository/HostsRepo.dart';
 
 class HostsDataBloc {
   final _repository = HostsRepo();

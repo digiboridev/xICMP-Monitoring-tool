@@ -3,9 +3,9 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
-import 'package:pingstats/repository/IhostDB.dart';
-import 'package:pingstats/repository/WakelockService.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:xICMP_Monitoring_tool/repository/IhostDB.dart';
+import 'package:xICMP_Monitoring_tool/repository/WakelockService.dart';
 
 class IsolateParams {}
 

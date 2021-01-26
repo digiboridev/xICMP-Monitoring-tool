@@ -3,11 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_plugin/flutter_foreground_plugin.dart';
 import 'package:move_to_background/move_to_background.dart';
-import 'package:pingstats/repository/WakelockService.dart';
-import 'package:pingstats/repository/bloc/HostsDataBloc.dart';
-import 'package:pingstats/screens/widgets/HostTile.dart';
+
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xICMP_Monitoring_tool/repository/WakelockService.dart';
+import 'package:xICMP_Monitoring_tool/repository/bloc/HostsDataBloc.dart';
+import 'package:xICMP_Monitoring_tool/screens/widgets/HostTile.dart';
 
 class MainScreen extends StatefulWidget {
   MainScreen({Key key}) : super(key: key);
@@ -243,7 +244,7 @@ class _MainScreenState extends State<MainScreen> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text('xICMP mt 1.0'),
+                            child: Text('xICMP mt 1.0.3 beta'),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),

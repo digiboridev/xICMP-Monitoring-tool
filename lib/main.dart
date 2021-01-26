@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pingstats/repository/bloc/HostsDataBloc.dart';
-import 'package:pingstats/screens/MainScreen.dart';
 import 'package:provider/provider.dart';
+import 'package:xICMP_Monitoring_tool/repository/bloc/HostsDataBloc.dart';
+import 'package:xICMP_Monitoring_tool/screens/MainScreen.dart';
 
 void main() {
   runApp(PingStatsApp());

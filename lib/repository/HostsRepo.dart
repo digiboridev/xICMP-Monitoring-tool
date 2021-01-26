@@ -1,6 +1,6 @@
-import 'package:pingstats/repository/HostModel.dart';
-import 'package:pingstats/repository/IhostDB.dart';
-import 'package:pingstats/repository/SqfDB.dart';
+import 'package:xICMP_Monitoring_tool/repository/HostModel.dart';
+import 'package:xICMP_Monitoring_tool/repository/IhostDB.dart';
+import 'package:xICMP_Monitoring_tool/repository/SqfDB.dart';
 
 class HostsRepo {
   IHostsDB _db = SqfDB();
