@@ -3,7 +3,7 @@ import 'package:xICMP_Monitoring_tool/repository/IhostDB.dart';
 
 class SqfDB implements IHostsDB {
   Database _db;
-  Duration _expirePeriod = Duration(days: 3);
+  Duration _expirePeriod = Duration(days: 7);
   int _expireCounter = 0;
 
   // Load or create db if empty
