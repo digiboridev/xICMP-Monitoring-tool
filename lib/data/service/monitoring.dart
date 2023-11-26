@@ -24,17 +24,28 @@ class MonitoringService {
   }
 
   Stream<Ping> _createMonitoringStream({Duration interval = const Duration(seconds: 1)}) async* {
+    // while (true) {
+    //   List<Host> hosts = await _repository.getAllHosts();
+    //   AppLogger.debug('Hosts: $hosts', name: 'MonitoringService');
+
+    //   Iterable<Future<Ping>> jobs = hosts.where((element) => element.enabled).map((e) => _pingTo(e.adress));
+    //   List<Ping> pings = await Future.wait(jobs);
+    //   for (Ping ping in pings) {
+    //     yield ping;
+    //   }
+
+    //   AppLogger.debug('Pings: $pings', name: 'MonitoringService');
+    //   await Future.delayed(interval);
+    // }
+
     while (true) {
       List<Host> hosts = await _repository.getAllHosts();
       AppLogger.debug('Hosts: $hosts', name: 'MonitoringService');
 
-      Iterable<Future<Ping>> jobs = hosts.where((element) => element.enabled).map((e) => _pingTo(e.adress));
-      List<Ping> pings = await Future.wait(jobs);
-      for (Ping ping in pings) {
+      for (Host host in hosts) {
+        Ping ping = await _pingTo(host.adress);
         yield ping;
       }
-
-      AppLogger.debug('Pings: $pings', name: 'MonitoringService');
       await Future.delayed(interval);
     }
   }

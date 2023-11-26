@@ -34,6 +34,7 @@ abstract class StatsRepository {
   Future addHost(Host host);
   Future updateHost(Host host);
   Future deleteHost(String host);
+  Future deleteAllHosts();
   Future<List<Host>> getAllHosts();
   Future addPing(Ping ping);
   Future<List<Ping>> getAllPings();
@@ -64,6 +65,12 @@ class StatsRepositoryDriftImpl implements StatsRepository {
   @override
   Future deleteHost(String host) async {
     await _dao.deleteHost(host);
+    _eventBus.add(HostsUpdated(await getAllHosts()));
+  }
+
+  @override
+  Future deleteAllHosts() async {
+    await _dao.deleteAllHosts();
     _eventBus.add(HostsUpdated(await getAllHosts()));
   }
 

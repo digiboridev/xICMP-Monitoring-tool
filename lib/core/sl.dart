@@ -7,5 +7,5 @@ abstract class SL {
 
   static final StatsRepository statsRepository = StatsRepositoryDriftImpl(_drift.statsDao);
 
-  static final MonitoringService monutoringService = MonitoringService(statsRepository);
+  static final MonitoringService monitoringService = MonitoringService(statsRepository);
 }

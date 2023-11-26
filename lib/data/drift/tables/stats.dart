@@ -9,6 +9,7 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
   Future addHost(DriftHost host) => into(hostsTable).insert(host);
   Future updateHost(DriftHost host) => update(hostsTable).replace(host);
   Future deleteHost(String host) => (delete(hostsTable)..where((t) => t.adress.equals(host))).go();
+  Future deleteAllHosts() => delete(hostsTable).go();
   Future<List<DriftHost>> getAllHosts() => select(hostsTable).get();
 
   Future addPing(DriftPing ping) => into(pingTable).insert(ping);
