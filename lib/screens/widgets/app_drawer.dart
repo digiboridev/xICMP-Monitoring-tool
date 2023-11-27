@@ -19,7 +19,7 @@ class _AppDrawerState extends State<AppDrawer> {
   final MonitoringService monitoringService = SL.monitoringService;
 
   void startAll() {
-    monitoringService.startMonitoring();
+    monitoringService.upsertMonitoring();
   }
 
   void stopAll() {
@@ -29,10 +29,12 @@ class _AppDrawerState extends State<AppDrawer> {
   void addDialog() async {
     String? newHost = await showDialog(context: context, builder: (_) => const HostAdressDialog(hostAdress: ''));
     if (newHost != null) statsRepository.addHost(Host(adress: newHost, enabled: true));
+    monitoringService.upsertMonitoring();
   }
 
   void deleteAll() {
     statsRepository.deleteAllHosts();
+    monitoringService.stopMonitoring();
   }
 
   @override

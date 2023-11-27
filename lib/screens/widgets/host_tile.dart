@@ -54,14 +54,14 @@ class _HostTileState extends State<HostTile> {
   ];
 
   void toggleRunning() {
-    // widget.host.toggleIsolate();
+    statsRepository.updateHost(widget.host.copyWith(enabled: !widget.host.enabled));
+    monitoringService.upsertMonitoring();
     print('toggle running');
   }
 
   void deleteHost(BuildContext context) {
-    // HostsDataBloc bloc = context.read<HostsDataBloc>();
-    // bloc.deleteHost(widget.host.hostname);
     statsRepository.deleteHost(widget.host.adress);
+    monitoringService.upsertMonitoring();
     print('delete host');
   }
 
@@ -89,50 +89,53 @@ class _HostTileState extends State<HostTile> {
           onTap: () {
             setState(() => expanded = !expanded);
           },
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              StreamBuilder(
-                stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
-                builder: (context, snapshot) {
-                  return BlinkingCircle();
-                },
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Text(widget.host.adress, overflow: TextOverflow.ellipsis),
-              ),
-              SizedBox(width: 16),
-              SizedBox(width: 80, child: TileLatency(samples: samples)),
+          child: Opacity(
+            opacity: widget.host.enabled ? 1 : 0.5,
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                StreamBuilder(
+                  stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
+                  builder: (context, snapshot) {
+                    return BlinkingCircle();
+                  },
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Text(widget.host.adress, overflow: TextOverflow.ellipsis),
+                ),
+                SizedBox(width: 16),
+                SizedBox(width: 80, child: TileLatency(samples: samples)),
 
-              // Container(
-              //     // margin: EdgeInsets.symmetric(vertical: 8),
-              //     width: 50,
-              //     height: 24,
-              //     child: StreamBuilder(
-              //       stream: widget.host.lastSamples,
-              //       builder: (context, snapshot) {
-              //         if (snapshot.hasData) {
-              //           if (snapshot.data != null) {
-              //             return CustomPaint(
-              //               painter: TileGraph(snapshot.data),
-              //             );
-              //           } else {
-              //             return Center(
-              //               child: CircularProgressIndicator(),
-              //             );
-              //           }
-              //         } else {
-              //           return Text('load');
-              //         }
-              //       },
-              //     )),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Icon(!expanded ? Icons.arrow_drop_down : Icons.arrow_drop_up),
-              ),
-            ],
+                // Container(
+                //     // margin: EdgeInsets.symmetric(vertical: 8),
+                //     width: 50,
+                //     height: 24,
+                //     child: StreamBuilder(
+                //       stream: widget.host.lastSamples,
+                //       builder: (context, snapshot) {
+                //         if (snapshot.hasData) {
+                //           if (snapshot.data != null) {
+                //             return CustomPaint(
+                //               painter: TileGraph(snapshot.data),
+                //             );
+                //           } else {
+                //             return Center(
+                //               child: CircularProgressIndicator(),
+                //             );
+                //           }
+                //         } else {
+                //           return Text('load');
+                //         }
+                //       },
+                //     )),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(!expanded ? Icons.arrow_drop_down : Icons.arrow_drop_up),
+                ),
+              ],
+            ),
           ),
         ),
         AnimatedContainer(
