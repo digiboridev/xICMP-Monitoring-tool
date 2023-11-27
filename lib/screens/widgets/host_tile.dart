@@ -6,6 +6,7 @@ import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/models/ping.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
+import 'package:xicmpmt/screens/widgets/interactive_graph.dart';
 import 'package:xicmpmt/screens/widgets/tile_host_stats.dart';
 import 'package:xicmpmt/screens/widgets/blinking_circle.dart';
 import 'package:xicmpmt/screens/widgets/tile_graph.dart';
@@ -27,37 +28,6 @@ class _HostTileState extends State<HostTile> {
   int lastSamplesCount = 100;
 
   bool expanded = false;
-  Duration selectedPeriod = Duration(hours: 3);
-  List<DropdownMenuItem<Duration>> periodDropdownList = [
-    DropdownMenuItem(
-      value: Duration(minutes: 5),
-      child: Text('30 mins'),
-    ),
-    DropdownMenuItem(
-      value: Duration(hours: 3),
-      child: Text('3 Hours'),
-    ),
-    DropdownMenuItem(
-      value: Duration(hours: 6),
-      child: Text('6 Hours'),
-    ),
-    DropdownMenuItem(
-      value: Duration(hours: 12),
-      child: Text('12 Hours'),
-    ),
-    DropdownMenuItem(
-      value: Duration(days: 1),
-      child: Text('1 day'),
-    ),
-    DropdownMenuItem(
-      value: Duration(days: 3),
-      child: Text('3 Days'),
-    ),
-    DropdownMenuItem(
-      value: Duration(days: 7),
-      child: Text('Week'),
-    ),
-  ];
 
   void toggleRunning() {
     statsRepository.updateHost(widget.host.copyWith(enabled: !widget.host.enabled));
@@ -121,7 +91,6 @@ class _HostTileState extends State<HostTile> {
                   child: SizedBox(width: 70, height: 24, child: CustomPaint(painter: TileGraph(lastSamples, length: lastSamplesCount))),
                 ),
                 Icon(!expanded ? Icons.arrow_drop_down : Icons.arrow_drop_up),
-                SizedBox(width: 16),
               ],
             ),
           ),
@@ -136,103 +105,35 @@ class _HostTileState extends State<HostTile> {
               child: expanded
                   ? Column(
                       children: [
-                        // Container(
-                        //   padding: EdgeInsets.symmetric(horizontal: 16),
-                        //   child: StreamBuilder(
-                        //       stream: widget.host.samplesPeriod,
-                        //       builder: (context, snapshot) {
-                        //         if (snapshot.hasData) {
-                        //           return Padding(
-                        //             padding: const EdgeInsets.all(8.0),
-                        //             child: Row(
-                        //               mainAxisAlignment: MainAxisAlignment.start,
-                        //               children: [
-                        //                 Text('Started: ', style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400)),
-                        //                 Text(
-                        //                   DateTime.fromMillisecondsSinceEpoch(snapshot.data['first'] ?? 0).toString(),
-                        //                   style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400),
-                        //                 ),
-                        //               ],
-                        //             ),
-                        //           );
-                        //         } else {
-                        //           return Container();
-                        //         }
-                        //       }),
-                        // ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                          child: TileHostStats(
-                            host: widget.host.adress,
-                          ),
+                        TileHostStats(host: widget.host.adress),
+                        Expanded(child: InteractiveGraph(host: widget.host.adress)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                                child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    widget.host.enabled ? Icons.pause_circle_outline : Icons.play_circle_outline,
+                                    size: 20,
+                                    color: Color(0xffF5F5F5),
+                                  ),
+                                  onPressed: () => toggleRunning(),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    size: 20,
+                                    color: Color(0xffF5F5F5),
+                                  ),
+                                  onPressed: () => deleteHost(context), // TODO dialog
+                                ),
+                              ],
+                            )),
+                          ],
                         ),
-                        // Container(
-                        //     // padding: EdgeInsets.symmetric(horizontal: 16),
-                        //     height: 120,
-                        //     child: StreamBuilder(
-                        //       stream: widget.host.samplesByPeriod,
-                        //       initialData: [],
-                        //       builder: (context, snapshot) {
-                        //         if (snapshot.data.length > 2) {
-                        //           return InteractiveGraph(snapshot.data);
-                        //         } else {
-                        //           return Center(
-                        //               child: CircularProgressIndicator(
-                        //             backgroundColor: Colors.white,
-                        //           ));
-                        //         }
-                        //       },
-                        //     )),
-                        // Container(
-                        //   padding: EdgeInsets.symmetric(horizontal: 32),
-                        //   child: Row(
-                        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        //     children: [
-                        //       Row(
-                        //         children: [
-                        //           Text('Show: ', style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400)),
-                        //           DropdownButton(
-                        //               value: selectedPeriod,
-                        //               onChanged: (Duration newValue) {
-                        //                 setState(() {
-                        //                   selectedPeriod = newValue;
-                        //                   widget.host.setPeriod = newValue;
-                        //                 });
-                        //               },
-                        //               icon: null,
-                        //               style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400),
-                        //               underline: Container(),
-                        //               items: periodDropdownList),
-                        //         ],
-                        //       ),
-                        //       Expanded(
-                        //           child: Row(
-                        //         mainAxisAlignment: MainAxisAlignment.end,
-                        //         children: [
-                        //           StreamBuilder(
-                        //               stream: widget.host.isOn,
-                        //               initialData: false,
-                        //               builder: (context, snapshot) {
-                        //                 return IconButton(
-                        //                     icon: Icon(
-                        //                       snapshot.data ? Icons.pause_circle_outline : Icons.play_circle_outline,
-                        //                       size: 20,
-                        //                       color: Color(0xffF5F5F5),
-                        //                     ),
-                        //                     onPressed: () => toggleRunning());
-                        //               }),
-                        //           IconButton(
-                        //               icon: Icon(
-                        //                 Icons.delete_outline,
-                        //                 size: 20,
-                        //                 color: Color(0xffF5F5F5),
-                        //               ),
-                        //               onPressed: () => deleteHost(context))
-                        //         ],
-                        //       ))
-                        //     ],
-                        //   ),
-                        // ),
                       ],
                     )
                   : null,

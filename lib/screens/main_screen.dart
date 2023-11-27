@@ -74,7 +74,7 @@ class _HostsListState extends State<HostsList> {
             Expanded(child: Text('Host')),
             SizedBox(width: 16),
             Text('Last 100 summary'),
-            SizedBox(width: 40),
+            SizedBox(width: 32),
           ],
         ),
         const Divider(),
