@@ -6,6 +6,7 @@ import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/models/ping.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
+import 'package:xicmpmt/screens/widgets/tile_host_stats.dart';
 import 'package:xicmpmt/screens/widgets/blinking_circle.dart';
 import 'package:xicmpmt/screens/widgets/tile_graph.dart';
 import 'package:xicmpmt/screens/widgets/tile_latency.dart';
@@ -159,20 +160,12 @@ class _HostTileState extends State<HostTile> {
                         //         }
                         //       }),
                         // ),
-                        // Container(
-                        //   padding: EdgeInsets.symmetric(horizontal: 16),
-                        //   child: StreamBuilder(
-                        //     stream: widget.host.samplesByPeriod,
-                        //     initialData: [],
-                        //     builder: (context, snapshot) {
-                        //       if (snapshot.data.length > 2) {
-                        //         return Padding(padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8), child: TileSummary(snapshot.data));
-                        //       } else {
-                        //         return Container();
-                        //       }
-                        //     },
-                        //   ),
-                        // ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                          child: TileHostStats(
+                            host: widget.host.adress,
+                          ),
+                        ),
                         // Container(
                         //     // padding: EdgeInsets.symmetric(horizontal: 16),
                         //     height: 120,

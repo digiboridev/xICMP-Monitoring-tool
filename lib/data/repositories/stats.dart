@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:xicmpmt/data/drift/mappers/stats.dart';
 import 'package:xicmpmt/data/drift/tables/stats.dart';
 import 'package:xicmpmt/data/models/host.dart';
+import 'package:xicmpmt/data/models/host_stats.dart';
 import 'package:xicmpmt/data/models/ping.dart';
 
 sealed class StatsEvent {
@@ -38,6 +39,7 @@ abstract class StatsRepository {
   Future disableAllHosts();
   Future enableAllHosts();
   Future<List<Host>> getAllHosts();
+  Future<HostStats> hostStats(String host);
 
   Future addPing(Ping ping);
   Future<List<Ping>> getAllPings();
@@ -97,6 +99,11 @@ class StatsRepositoryDriftImpl implements StatsRepository {
   @override
   Future<List<Host>> getAllHosts() async {
     return _dao.getAllHosts().then((raw) => raw.map((e) => StatsMapper.toHost(e)).toList());
+  }
+
+  @override
+  Future<HostStats> hostStats(String host) async {
+    return _dao.hostStats(host);
   }
 
   @override

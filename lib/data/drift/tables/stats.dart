@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:xicmpmt/data/drift/db.dart';
+import 'package:xicmpmt/data/models/host_stats.dart';
 part 'stats.g.dart';
 
 @DriftAccessor(tables: [HostsTable, PingTable])
@@ -11,6 +12,20 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
   Future deleteHost(String host) => (delete(hostsTable)..where((t) => t.adress.equals(host))).go();
   Future deleteAllHosts() => delete(hostsTable).go();
   Future<List<DriftHost>> getAllHosts() => select(hostsTable).get();
+  Future<HostStats> hostStats(String host) async {
+    final query = customSelect(
+      'SELECT round(avg(latency)) as avg, min(latency) as min, max(latency) as max, count(*) as count, count(latency) as numCount FROM ping_table WHERE host = ?',
+      variables: [Variable.withString(host)],
+    );
+    final result = await query.getSingle();
+    double avg = result.read('avg');
+    double min = result.read('min');
+    double max = result.read('max');
+    int count = result.read('count');
+    int numCount = result.read('numCount');
+    int lossPercent = (count - numCount) ~/ count * 100;
+    return HostStats(avg, min, max, count, numCount, lossPercent);
+  }
 
   Future addPing(DriftPing ping) => into(pingTable).insert(ping, mode: InsertMode.insertOrReplace);
   @Deprecated('test only')
