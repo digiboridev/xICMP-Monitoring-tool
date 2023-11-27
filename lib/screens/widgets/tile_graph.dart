@@ -47,7 +47,7 @@ class TileGraph extends CustomPainter {
       final x2 = (i + 1) * step;
       final v2 = el2.latency;
 
-      if (v1 == null || v2 == null) {
+      if (v1 == 1001 || v2 == 1001) {
         canvas.drawRect(Offset(x1, 0) & Size(step, size.height), _lossPaint);
       } else {
         final y1 = lineHeightWrapp(v1);

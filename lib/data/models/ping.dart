@@ -2,8 +2,8 @@
 class Ping {
   final String host;
   final DateTime time;
-  final int? latency;
-  Ping({required this.host, required this.time, this.latency});
+  final int latency;
+  Ping({required this.host, required this.time, required this.latency});
 
   @override
   bool operator ==(covariant Ping other) {

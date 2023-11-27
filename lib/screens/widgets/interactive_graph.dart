@@ -28,13 +28,17 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 
   late final ScrollController scr = ScrollController();
 
-  Duration selectedPeriod = Duration(hours: 3);
+  Duration selectedPeriod = Duration(minutes: 5);
   late DateTime from = DateTime.now().subtract(selectedPeriod);
   late DateTime to = DateTime.now();
 
   List<DropdownMenuItem<Duration>> periodDropdownList = [
     DropdownMenuItem(
       value: Duration(minutes: 5),
+      child: Text('5 mins'),
+    ),
+    DropdownMenuItem(
+      value: Duration(minutes: 30),
       child: Text('30 mins'),
     ),
     DropdownMenuItem(
@@ -66,22 +70,24 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   @override
   void initState() {
     super.initState();
-    loadData();
-    scr.addListener(() {
-      offset = scr.offset;
-      // setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadData();
+      scr.addListener(() {
+        offset = scr.offset;
+        print(offset);
+        setState(() {});
+      });
     });
   }
 
   loadData() async {
-    final now = DateTime.now();
-    final newfrom = now.subtract(selectedPeriod);
-    final newto = now;
-    final newData = await SL.statsRepository.getPingsForHostPeriod(widget.host, newfrom, newto);
+    final rasterWidth = MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio;
+
+    final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (2000 * scale).toInt());
     if (!mounted) return;
+
     data = newData;
-    from = newfrom;
-    to = newto;
+
     setState(() => {});
   }
 
@@ -117,7 +123,13 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                         // Jump to offset proportionaly to scale
                         double newOffset = prevOffset * details.scale + details.focalPoint.dx * (details.scale - 1);
                         if (scale > 1.0) scr.jumpTo(newOffset);
+                        print(scale);
                       });
+                    },
+
+                    onScaleEnd: (details) {
+                      loadData();
+                      print('end');
                     },
                     child: SizedBox(
                       // Grow conteiner width depend on scale value
@@ -140,7 +152,13 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
               onChanged: (Duration? newValue) {
                 if (newValue == null) return;
                 setState(() {
+                  final now = DateTime.now();
                   selectedPeriod = newValue;
+                  from = now.subtract(selectedPeriod);
+                  to = now;
+                  scale = 1.0;
+                  offset = 0;
+                  scr.jumpTo(0);
                   loadData();
                 });
                 FocusScope.of(context).unfocus();
@@ -181,6 +199,8 @@ class GraphPainter extends CustomPainter {
     int first = start.millisecondsSinceEpoch;
     int last = end.millisecondsSinceEpoch;
     int timeDiff = last - first;
+    int viewPortTimeStampStart = (last - timeDiff * (offset / size.width)).toInt();
+    int viewPortTimeStampEnd = (last - timeDiff * ((offset + cWidth) / size.width)).toInt();
 
     // Calc percent of canvas height by point ping
     double hCalc(num p) {
@@ -208,9 +228,6 @@ class GraphPainter extends CustomPainter {
       tp.paint(canvas, Offset(offset, hCalc(i * 200)));
       tp.paint(canvas, Offset((offset + cWidth) - twidth, hCalc(i * 200)));
     }
-
-    final viewPortTimeStampStart = (last - timeDiff * (offset / size.width)).toInt();
-    final viewPortTimeStampEnd = (last - timeDiff * ((offset + cWidth) / size.width)).toInt();
 
     for (double i = 0; i < 0.99; i += (1 / (scale.floor() * 10))) {
       // Cut other optimization
@@ -241,8 +258,7 @@ class GraphPainter extends CustomPainter {
       if (timeStamp > viewPortTimeStampStart || timeStamp < viewPortTimeStampEnd) continue;
 
       double time = wCalc(timeStamp);
-      int? ping = p.latency;
-      ping ??= 1000;
+      int ping = p.latency;
 
       pingLine.moveTo((time), size.height - 16);
       pingLine.lineTo((time), hCalc(ping) + 16);

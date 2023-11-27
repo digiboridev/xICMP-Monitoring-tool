@@ -217,8 +217,8 @@ class $PingTableTable extends PingTable
       const VerificationMeta('latency');
   @override
   late final GeneratedColumn<int> latency = GeneratedColumn<int>(
-      'latency', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
+      'latency', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [host, timestamp, latency];
   @override
@@ -246,6 +246,8 @@ class $PingTableTable extends PingTable
     if (data.containsKey('latency')) {
       context.handle(_latencyMeta,
           latency.isAcceptableOrUnknown(data['latency']!, _latencyMeta));
+    } else if (isInserting) {
+      context.missing(_latencyMeta);
     }
     return context;
   }
@@ -261,7 +263,7 @@ class $PingTableTable extends PingTable
       timestamp: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}timestamp'])!,
       latency: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}latency']),
+          .read(DriftSqlType.int, data['${effectivePrefix}latency'])!,
     );
   }
 
@@ -274,16 +276,15 @@ class $PingTableTable extends PingTable
 class DriftPing extends DataClass implements Insertable<DriftPing> {
   final String host;
   final int timestamp;
-  final int? latency;
-  const DriftPing({required this.host, required this.timestamp, this.latency});
+  final int latency;
+  const DriftPing(
+      {required this.host, required this.timestamp, required this.latency});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['host'] = Variable<String>(host);
     map['timestamp'] = Variable<int>(timestamp);
-    if (!nullToAbsent || latency != null) {
-      map['latency'] = Variable<int>(latency);
-    }
+    map['latency'] = Variable<int>(latency);
     return map;
   }
 
@@ -291,9 +292,7 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
     return PingTableCompanion(
       host: Value(host),
       timestamp: Value(timestamp),
-      latency: latency == null && nullToAbsent
-          ? const Value.absent()
-          : Value(latency),
+      latency: Value(latency),
     );
   }
 
@@ -303,7 +302,7 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
     return DriftPing(
       host: serializer.fromJson<String>(json['host']),
       timestamp: serializer.fromJson<int>(json['timestamp']),
-      latency: serializer.fromJson<int?>(json['latency']),
+      latency: serializer.fromJson<int>(json['latency']),
     );
   }
   @override
@@ -312,18 +311,14 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
     return <String, dynamic>{
       'host': serializer.toJson<String>(host),
       'timestamp': serializer.toJson<int>(timestamp),
-      'latency': serializer.toJson<int?>(latency),
+      'latency': serializer.toJson<int>(latency),
     };
   }
 
-  DriftPing copyWith(
-          {String? host,
-          int? timestamp,
-          Value<int?> latency = const Value.absent()}) =>
-      DriftPing(
+  DriftPing copyWith({String? host, int? timestamp, int? latency}) => DriftPing(
         host: host ?? this.host,
         timestamp: timestamp ?? this.timestamp,
-        latency: latency.present ? latency.value : this.latency,
+        latency: latency ?? this.latency,
       );
   @override
   String toString() {
@@ -349,7 +344,7 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
 class PingTableCompanion extends UpdateCompanion<DriftPing> {
   final Value<String> host;
   final Value<int> timestamp;
-  final Value<int?> latency;
+  final Value<int> latency;
   final Value<int> rowid;
   const PingTableCompanion({
     this.host = const Value.absent(),
@@ -360,10 +355,11 @@ class PingTableCompanion extends UpdateCompanion<DriftPing> {
   PingTableCompanion.insert({
     required String host,
     required int timestamp,
-    this.latency = const Value.absent(),
+    required int latency,
     this.rowid = const Value.absent(),
   })  : host = Value(host),
-        timestamp = Value(timestamp);
+        timestamp = Value(timestamp),
+        latency = Value(latency);
   static Insertable<DriftPing> custom({
     Expression<String>? host,
     Expression<int>? timestamp,
@@ -381,7 +377,7 @@ class PingTableCompanion extends UpdateCompanion<DriftPing> {
   PingTableCompanion copyWith(
       {Value<String>? host,
       Value<int>? timestamp,
-      Value<int?>? latency,
+      Value<int>? latency,
       Value<int>? rowid}) {
     return PingTableCompanion(
       host: host ?? this.host,
