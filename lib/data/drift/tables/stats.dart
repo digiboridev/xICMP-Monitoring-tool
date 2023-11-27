@@ -13,10 +13,18 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
   Future<List<DriftHost>> getAllHosts() => select(hostsTable).get();
 
   Future addPing(DriftPing ping) => into(pingTable).insert(ping);
+  @Deprecated('test only')
   Future<List<DriftPing>> getAllPings() => select(pingTable).get();
   Future<List<DriftPing>> getPingsForHost(String host) => (select(pingTable)..where((t) => t.host.equals(host))).get();
   Future<List<DriftPing>> getPingsForHostPeriod(String host, DateTime from, DateTime to) =>
       (select(pingTable)..where((t) => t.host.equals(host) & t.time.isBetweenValues(from, to))).get();
+  Future<List<DriftPing>> getLastPingsForHost(String host, int count) => (select(pingTable)
+        ..orderBy(
+          [(t) => OrderingTerm(expression: t.time, mode: OrderingMode.desc)],
+        )
+        ..where((t) => t.host.equals(host))
+        ..limit(count))
+      .get();
 }
 
 @DataClassName('DriftHost')

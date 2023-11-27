@@ -35,11 +35,15 @@ abstract class StatsRepository {
   Future updateHost(Host host);
   Future deleteHost(String host);
   Future deleteAllHosts();
+  Future disableAllHosts();
+  Future enableAllHosts();
   Future<List<Host>> getAllHosts();
+
   Future addPing(Ping ping);
   Future<List<Ping>> getAllPings();
   Future<List<Ping>> getPingsForHost(String host);
   Future<List<Ping>> getPingsForHostPeriod(String host, DateTime from, DateTime to);
+  Future<List<Ping>> getLastPingsForHost(String host, int count);
 }
 
 class StatsRepositoryDriftImpl implements StatsRepository {
@@ -75,6 +79,22 @@ class StatsRepositoryDriftImpl implements StatsRepository {
   }
 
   @override
+  Future disableAllHosts() async {
+    final hosts = await getAllHosts();
+    for (final host in hosts) {
+      await updateHost(host.copyWith(enabled: false));
+    }
+  }
+
+  @override
+  Future enableAllHosts() async {
+    final hosts = await getAllHosts();
+    for (final host in hosts) {
+      await updateHost(host.copyWith(enabled: true));
+    }
+  }
+
+  @override
   Future<List<Host>> getAllHosts() async {
     return _dao.getAllHosts().then((raw) => raw.map((e) => StatsMapper.toHost(e)).toList());
   }
@@ -98,5 +118,10 @@ class StatsRepositoryDriftImpl implements StatsRepository {
   @override
   Future<List<Ping>> getPingsForHostPeriod(String host, DateTime from, DateTime to) async {
     return _dao.getPingsForHostPeriod(host, from, to).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
+  }
+
+  @override
+  Future<List<Ping>> getLastPingsForHost(String host, int count) async {
+    return _dao.getLastPingsForHost(host, count).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
   }
 }

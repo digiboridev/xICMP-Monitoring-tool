@@ -57,13 +57,14 @@ class _TileLatencyState extends State<TileLatency> {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle st = TextStyle(fontSize: 10, fontWeight: FontWeight.w400);
+    TextStyle st = TextStyle(fontSize: 9, fontWeight: FontWeight.w400, height: 1);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('AVG: $avg ms', style: st),
-        Text('$lossPercent% loss', style: st),
+        SizedBox(height: 3),
+        Text('LOS: $lossPercent % ', style: st),
       ],
     );
   }

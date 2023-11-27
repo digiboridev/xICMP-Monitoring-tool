@@ -68,27 +68,17 @@ class _HostsListState extends State<HostsList> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Status'),
-            const Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text('Host'),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text('Latency'),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              margin: const EdgeInsets.only(right: 32),
-              child: const Text('Preview'),
-            ),
+          children: const [
+            Text('Act'),
+            SizedBox(width: 16),
+            Expanded(child: Text('Host')),
+            SizedBox(width: 16),
+            Text('Last 100 summary'),
+            SizedBox(width: 40),
           ],
         ),
         const Divider(),
-        for (var host in hosts) HostTile(host: host),
+        for (var host in hosts) HostTile(host: host, key: Key(host.adress)),
       ],
     );
   }

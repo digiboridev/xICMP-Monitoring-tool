@@ -9,11 +9,12 @@ import 'package:xicmpmt/data/repositories/stats.dart';
 
 class MonitoringService {
   final StatsRepository _repository;
-  MonitoringService(this._repository);
+  MonitoringService(this._repository) {
+    upsertMonitoring();
+  }
 
   StreamSubscription? _monitoringSubscription;
 
-  /// Or restart also
   upsertMonitoring() async {
     _monitoringSubscription?.cancel();
     _monitoringSubscription = _createMonitoringStream().listen((ping) async {
@@ -21,11 +22,11 @@ class MonitoringService {
     });
   }
 
-  stopMonitoring() {
-    _monitoringSubscription?.cancel();
-  }
+  // stopMonitoring() {
+  //   _monitoringSubscription?.cancel();
+  // }
 
-  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(seconds: 1)}) async* {
+  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(milliseconds: 1000)}) async* {
     //
     // Pseudo-parrallel
     //

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/host.dart';
@@ -5,6 +7,7 @@ import 'package:xicmpmt/data/models/ping.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
 import 'package:xicmpmt/screens/widgets/blinking_circle.dart';
+import 'package:xicmpmt/screens/widgets/tile_graph.dart';
 import 'package:xicmpmt/screens/widgets/tile_latency.dart';
 
 class HostTile extends StatefulWidget {
@@ -18,7 +21,9 @@ class HostTile extends StatefulWidget {
 class _HostTileState extends State<HostTile> {
   final StatsRepository statsRepository = SL.statsRepository;
   final MonitoringService monitoringService = SL.monitoringService;
-  List<Ping> samples = [];
+
+  Queue<Ping> lastSamples = Queue();
+  int lastSamplesCount = 100;
 
   bool expanded = false;
   Duration selectedPeriod = Duration(hours: 3);
@@ -72,16 +77,18 @@ class _HostTileState extends State<HostTile> {
   }
 
   init() async {
-    samples = await statsRepository.getPingsForHost(widget.host.adress);
+    lastSamples = Queue.from(await statsRepository.getLastPingsForHost(widget.host.adress, lastSamplesCount));
     statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress).cast<PingAdded>().forEach((event) {
-      if (mounted) setState(() => samples.add(event.ping));
+      if (!mounted) return;
+      lastSamples.addFirst(event.ping);
+      if (lastSamples.length > lastSamplesCount) lastSamples.removeLast();
+      setState(() {});
     });
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    print('render hostTile');
     return Column(
       children: [
         InkWell(
@@ -103,37 +110,17 @@ class _HostTileState extends State<HostTile> {
                 ),
                 SizedBox(width: 16),
                 Expanded(
-                  child: Text(widget.host.adress, overflow: TextOverflow.ellipsis),
+                  child: Text(widget.host.adress, overflow: TextOverflow.fade, softWrap: false),
                 ),
                 SizedBox(width: 16),
-                SizedBox(width: 80, child: TileLatency(samples: samples)),
-
-                // Container(
-                //     // margin: EdgeInsets.symmetric(vertical: 8),
-                //     width: 50,
-                //     height: 24,
-                //     child: StreamBuilder(
-                //       stream: widget.host.lastSamples,
-                //       builder: (context, snapshot) {
-                //         if (snapshot.hasData) {
-                //           if (snapshot.data != null) {
-                //             return CustomPaint(
-                //               painter: TileGraph(snapshot.data),
-                //             );
-                //           } else {
-                //             return Center(
-                //               child: CircularProgressIndicator(),
-                //             );
-                //           }
-                //         } else {
-                //           return Text('load');
-                //         }
-                //       },
-                //     )),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Icon(!expanded ? Icons.arrow_drop_down : Icons.arrow_drop_up),
+                RepaintBoundary(
+                  child: SizedBox(width: 60, child: TileLatency(samples: lastSamples)),
                 ),
+                RepaintBoundary(
+                  child: SizedBox(width: 70, height: 24, child: CustomPaint(painter: TileGraph(lastSamples, length: lastSamplesCount))),
+                ),
+                Icon(!expanded ? Icons.arrow_drop_down : Icons.arrow_drop_up),
+                SizedBox(width: 16),
               ],
             ),
           ),
@@ -258,7 +245,8 @@ class _HostTileState extends State<HostTile> {
                   : null,
             ),
           ),
-        )
+        ),
+        SizedBox(height: 8),
       ],
     );
   }

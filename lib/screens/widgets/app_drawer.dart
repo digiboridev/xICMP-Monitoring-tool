@@ -18,12 +18,14 @@ class _AppDrawerState extends State<AppDrawer> {
   final StatsRepository statsRepository = SL.statsRepository;
   final MonitoringService monitoringService = SL.monitoringService;
 
-  void startAll() {
+  void enableAll() async {
+    await statsRepository.enableAllHosts();
     monitoringService.upsertMonitoring();
   }
 
-  void stopAll() {
-    monitoringService.stopMonitoring();
+  void disableAll() async {
+    await statsRepository.disableAllHosts();
+    monitoringService.upsertMonitoring();
   }
 
   void addDialog() async {
@@ -32,9 +34,9 @@ class _AppDrawerState extends State<AppDrawer> {
     monitoringService.upsertMonitoring();
   }
 
-  void deleteAll() {
-    statsRepository.deleteAllHosts();
-    monitoringService.stopMonitoring();
+  void deleteAll() async {
+    await statsRepository.deleteAllHosts();
+    monitoringService.upsertMonitoring();
   }
 
   @override
@@ -52,12 +54,13 @@ class _AppDrawerState extends State<AppDrawer> {
               children: [
                 TextButton(onPressed: addDialog, child: const Row(children: [Icon(Icons.add), SizedBox(width: 8), Text('Add host')])),
                 SizedBox(height: 8),
-                TextButton(onPressed: startAll, child: const Row(children: [Icon(Icons.play_arrow), SizedBox(width: 8), Text('Start all')])),
+                TextButton(onPressed: enableAll, child: const Row(children: [Icon(Icons.play_arrow), SizedBox(width: 8), Text('Enable all')])),
                 SizedBox(height: 8),
-                TextButton(onPressed: stopAll, child: const Row(children: [Icon(Icons.stop), SizedBox(width: 8), Text('Stop all')])),
+                TextButton(onPressed: disableAll, child: const Row(children: [Icon(Icons.stop), SizedBox(width: 8), Text('Disable all')])),
                 SizedBox(height: 8),
                 TextButton(onPressed: deleteAll, child: const Row(children: [Icon(Icons.delete_outlined), SizedBox(width: 8), Text('Delete all')])),
                 SizedBox(height: 8),
+                // TODO minimize
                 TextButton(onPressed: () {}, child: const Row(children: [Icon(Icons.minimize), SizedBox(width: 8), Text('Minimize')])),
                 SizedBox(height: 8),
                 TextButton(onPressed: () async => exit(0), child: const Row(children: [Icon(Icons.minimize), SizedBox(width: 8), Text('Close app')])),
