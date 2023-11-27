@@ -207,11 +207,12 @@ class $PingTableTable extends PingTable
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'REFERENCES hosts_table (adress) ON DELETE CASCADE'));
-  static const VerificationMeta _timeMeta = const VerificationMeta('time');
+  static const VerificationMeta _timestampMeta =
+      const VerificationMeta('timestamp');
   @override
-  late final GeneratedColumn<DateTime> time = GeneratedColumn<DateTime>(
-      'time', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  late final GeneratedColumn<int> timestamp = GeneratedColumn<int>(
+      'timestamp', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _latencyMeta =
       const VerificationMeta('latency');
   @override
@@ -219,7 +220,7 @@ class $PingTableTable extends PingTable
       'latency', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [host, time, latency];
+  List<GeneratedColumn> get $columns => [host, timestamp, latency];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -236,11 +237,11 @@ class $PingTableTable extends PingTable
     } else if (isInserting) {
       context.missing(_hostMeta);
     }
-    if (data.containsKey('time')) {
-      context.handle(
-          _timeMeta, time.isAcceptableOrUnknown(data['time']!, _timeMeta));
+    if (data.containsKey('timestamp')) {
+      context.handle(_timestampMeta,
+          timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta));
     } else if (isInserting) {
-      context.missing(_timeMeta);
+      context.missing(_timestampMeta);
     }
     if (data.containsKey('latency')) {
       context.handle(_latencyMeta,
@@ -250,15 +251,15 @@ class $PingTableTable extends PingTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {host, time};
+  Set<GeneratedColumn> get $primaryKey => {host, timestamp};
   @override
   DriftPing map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DriftPing(
       host: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}host'])!,
-      time: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}time'])!,
+      timestamp: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}timestamp'])!,
       latency: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}latency']),
     );
@@ -272,14 +273,14 @@ class $PingTableTable extends PingTable
 
 class DriftPing extends DataClass implements Insertable<DriftPing> {
   final String host;
-  final DateTime time;
+  final int timestamp;
   final int? latency;
-  const DriftPing({required this.host, required this.time, this.latency});
+  const DriftPing({required this.host, required this.timestamp, this.latency});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['host'] = Variable<String>(host);
-    map['time'] = Variable<DateTime>(time);
+    map['timestamp'] = Variable<int>(timestamp);
     if (!nullToAbsent || latency != null) {
       map['latency'] = Variable<int>(latency);
     }
@@ -289,7 +290,7 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
   PingTableCompanion toCompanion(bool nullToAbsent) {
     return PingTableCompanion(
       host: Value(host),
-      time: Value(time),
+      timestamp: Value(timestamp),
       latency: latency == null && nullToAbsent
           ? const Value.absent()
           : Value(latency),
@@ -301,7 +302,7 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DriftPing(
       host: serializer.fromJson<String>(json['host']),
-      time: serializer.fromJson<DateTime>(json['time']),
+      timestamp: serializer.fromJson<int>(json['timestamp']),
       latency: serializer.fromJson<int?>(json['latency']),
     );
   }
@@ -310,68 +311,68 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'host': serializer.toJson<String>(host),
-      'time': serializer.toJson<DateTime>(time),
+      'timestamp': serializer.toJson<int>(timestamp),
       'latency': serializer.toJson<int?>(latency),
     };
   }
 
   DriftPing copyWith(
           {String? host,
-          DateTime? time,
+          int? timestamp,
           Value<int?> latency = const Value.absent()}) =>
       DriftPing(
         host: host ?? this.host,
-        time: time ?? this.time,
+        timestamp: timestamp ?? this.timestamp,
         latency: latency.present ? latency.value : this.latency,
       );
   @override
   String toString() {
     return (StringBuffer('DriftPing(')
           ..write('host: $host, ')
-          ..write('time: $time, ')
+          ..write('timestamp: $timestamp, ')
           ..write('latency: $latency')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(host, time, latency);
+  int get hashCode => Object.hash(host, timestamp, latency);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is DriftPing &&
           other.host == this.host &&
-          other.time == this.time &&
+          other.timestamp == this.timestamp &&
           other.latency == this.latency);
 }
 
 class PingTableCompanion extends UpdateCompanion<DriftPing> {
   final Value<String> host;
-  final Value<DateTime> time;
+  final Value<int> timestamp;
   final Value<int?> latency;
   final Value<int> rowid;
   const PingTableCompanion({
     this.host = const Value.absent(),
-    this.time = const Value.absent(),
+    this.timestamp = const Value.absent(),
     this.latency = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PingTableCompanion.insert({
     required String host,
-    required DateTime time,
+    required int timestamp,
     this.latency = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : host = Value(host),
-        time = Value(time);
+        timestamp = Value(timestamp);
   static Insertable<DriftPing> custom({
     Expression<String>? host,
-    Expression<DateTime>? time,
+    Expression<int>? timestamp,
     Expression<int>? latency,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (host != null) 'host': host,
-      if (time != null) 'time': time,
+      if (timestamp != null) 'timestamp': timestamp,
       if (latency != null) 'latency': latency,
       if (rowid != null) 'rowid': rowid,
     });
@@ -379,12 +380,12 @@ class PingTableCompanion extends UpdateCompanion<DriftPing> {
 
   PingTableCompanion copyWith(
       {Value<String>? host,
-      Value<DateTime>? time,
+      Value<int>? timestamp,
       Value<int?>? latency,
       Value<int>? rowid}) {
     return PingTableCompanion(
       host: host ?? this.host,
-      time: time ?? this.time,
+      timestamp: timestamp ?? this.timestamp,
       latency: latency ?? this.latency,
       rowid: rowid ?? this.rowid,
     );
@@ -396,8 +397,8 @@ class PingTableCompanion extends UpdateCompanion<DriftPing> {
     if (host.present) {
       map['host'] = Variable<String>(host.value);
     }
-    if (time.present) {
-      map['time'] = Variable<DateTime>(time.value);
+    if (timestamp.present) {
+      map['timestamp'] = Variable<int>(timestamp.value);
     }
     if (latency.present) {
       map['latency'] = Variable<int>(latency.value);
@@ -412,7 +413,7 @@ class PingTableCompanion extends UpdateCompanion<DriftPing> {
   String toString() {
     return (StringBuffer('PingTableCompanion(')
           ..write('host: $host, ')
-          ..write('time: $time, ')
+          ..write('timestamp: $timestamp, ')
           ..write('latency: $latency, ')
           ..write('rowid: $rowid')
           ..write(')'))

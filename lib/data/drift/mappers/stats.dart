@@ -11,11 +11,11 @@ Host _toHost(DriftHost host) {
 }
 
 DriftPing _fromPing(Ping ping) {
-  return DriftPing(host: ping.host, time: ping.time, latency: ping.latency);
+  return DriftPing(host: ping.host, timestamp: ping.time.millisecondsSinceEpoch, latency: ping.latency);
 }
 
 Ping _toPing(DriftPing ping) {
-  return Ping(host: ping.host, time: ping.time, latency: ping.latency);
+  return Ping(host: ping.host, time: DateTime.fromMillisecondsSinceEpoch(ping.timestamp), latency: ping.latency);
 }
 
 abstract class StatsMapper {
