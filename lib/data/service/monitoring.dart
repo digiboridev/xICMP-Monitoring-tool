@@ -12,21 +12,14 @@ class MonitoringService {
   MonitoringService(this._repository) {
     upsertMonitoring();
   }
-
   StreamSubscription? _monitoringSubscription;
 
   upsertMonitoring() async {
     _monitoringSubscription?.cancel();
-    _monitoringSubscription = _createMonitoringStream().listen((ping) async {
-      await _repository.addPing(ping);
-    });
+    _monitoringSubscription = _createMonitoringStream().listen((ping) => _repository.addPing(ping));
   }
 
-  // stopMonitoring() {
-  //   _monitoringSubscription?.cancel();
-  // }
-
-  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(milliseconds: 250)}) async* {
+  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(milliseconds: 64)}) async* {
     //
     // Pseudo-parrallel
     //
@@ -67,7 +60,10 @@ class MonitoringService {
     }
     await for (Ping ping in MergeStream(streams)) {
       yield ping;
-      AppLogger.debug('$ping', name: 'MonitoringService');
+      // Print every ~100th ping
+      if (DateTime.now().microsecondsSinceEpoch % 100 == 1) {
+        AppLogger.debug('$ping', name: 'MonitoringService');
+      }
     }
   }
 
@@ -86,8 +82,10 @@ class MonitoringService {
           }
         }
       }
-    } catch (e) {
-      AppLogger.error('Error while pinging $adress: $e', name: 'MonitoringService');
+    } on TimeoutException {
+      AppLogger.debug('Ping timeout: $adress', name: 'MonitoringService');
+    } catch (e, s) {
+      AppLogger.error('$e', name: 'MonitoringService', error: e, stack: s);
     }
     return Ping(host: adress, time: sendTime, latency: null);
   }
