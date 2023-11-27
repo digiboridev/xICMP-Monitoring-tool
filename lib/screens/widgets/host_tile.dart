@@ -111,27 +111,28 @@ class _HostTileState extends State<HostTile> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                                child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    widget.host.enabled ? Icons.pause_circle_outline : Icons.play_circle_outline,
-                                    size: 20,
-                                    color: Color(0xffF5F5F5),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      widget.host.enabled ? Icons.pause_circle_outline : Icons.play_circle_outline,
+                                      size: 20,
+                                      color: Color(0xffF5F5F5),
+                                    ),
+                                    onPressed: () => toggleRunning(),
                                   ),
-                                  onPressed: () => toggleRunning(),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.delete_outline,
-                                    size: 20,
-                                    color: Color(0xffF5F5F5),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.delete_outline,
+                                      size: 20,
+                                      color: Color(0xffF5F5F5),
+                                    ),
+                                    onPressed: () => deleteHost(context), // TODO dialog
                                   ),
-                                  onPressed: () => deleteHost(context), // TODO dialog
-                                ),
-                              ],
-                            )),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ],

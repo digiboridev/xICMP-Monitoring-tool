@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/ping.dart';
@@ -21,14 +20,18 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   //Init scale value
   //Uses for make graph zoomable
   double scale = 1.0;
+  double offset = 0;
 
   //Uses to zoom and scroll calculations
   double prevscale = 1.0;
   double prevOffset = 0;
 
-  ScrollController scr = ScrollController();
+  late final ScrollController scr = ScrollController();
 
   Duration selectedPeriod = Duration(hours: 3);
+  late DateTime from = DateTime.now().subtract(selectedPeriod);
+  late DateTime to = DateTime.now();
+
   List<DropdownMenuItem<Duration>> periodDropdownList = [
     DropdownMenuItem(
       value: Duration(minutes: 5),
@@ -64,13 +67,22 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   void initState() {
     super.initState();
     loadData();
+    scr.addListener(() {
+      offset = scr.offset;
+      // setState(() {});
+    });
   }
 
   loadData() async {
     final now = DateTime.now();
-    final d = await SL.statsRepository.getPingsForHostPeriod(widget.host, now.subtract(selectedPeriod), now);
+    final newfrom = now.subtract(selectedPeriod);
+    final newto = now;
+    final newData = await SL.statsRepository.getPingsForHostPeriod(widget.host, newfrom, newto);
     if (!mounted) return;
-    setState(() => data = d);
+    data = newData;
+    from = newfrom;
+    to = newto;
+    setState(() => {});
   }
 
   @override
@@ -78,44 +90,46 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     return Column(
       children: [
         Expanded(
-          child: ClipRRect(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              // Some times canvas may draws over container
-              // Hard clip it
-              child: SingleChildScrollView(
-                controller: scr,
-                scrollDirection: Axis.horizontal,
-                // Detects scale gesture
-                child: GestureDetector(
-                  // Hold last values before changes
-                  onScaleStart: (details) {
-                    prevOffset = scr.offset;
-                    prevscale = scale;
-                  },
+          child: LayoutBuilder(
+            builder: (context, constrains) {
+              final width = constrains.maxWidth;
+              final height = constrains.maxHeight;
+              return SizedBox(
+                width: width,
+                height: height,
+                child: SingleChildScrollView(
+                  controller: scr,
+                  scrollDirection: Axis.horizontal,
+                  // Detects scale gesture
+                  child: GestureDetector(
+                    // Hold last values before changes
+                    onScaleStart: (details) {
+                      prevOffset = scr.offset;
+                      prevscale = scale;
+                    },
+                    // Adjust new scale loocking on previous values
+                    onScaleUpdate: (details) {
+                      setState(() {
+                        // Adjust scale
+                        scale = prevscale * details.scale;
+                        scale < 1.0 ? scale = 1.0 : scale = scale;
 
-                  // Adjust new scale loocking on previous values
-                  onScaleUpdate: (details) {
-                    setState(() {
-                      // Jump to offset proportionaly to scale
-                      double asd = prevOffset * details.scale;
-                      scr.jumpTo(asd);
-
-                      // Adjust scale
-                      scale = prevscale * details.scale;
-                      scale < 1.0 ? scale = 1 : scale = scale;
-                    });
-                  },
-                  child: SizedBox(
-                    // Grow conteiner width depend on scale value
-                    width: (MediaQuery.of(context).size.width - 32) * scale,
-                    child: CustomPaint(
-                      painter: GraphPainter(data, scale, scr, (MediaQuery.of(context).size.width - 32)),
+                        // Jump to offset proportionaly to scale
+                        double newOffset = prevOffset * details.scale + details.focalPoint.dx * (details.scale - 1);
+                        if (scale > 1.0) scr.jumpTo(newOffset);
+                      });
+                    },
+                    child: SizedBox(
+                      // Grow conteiner width depend on scale value
+                      width: width * scale,
+                      child: CustomPaint(
+                        painter: GraphPainter(data, scale, offset, width, from, to),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ),
         Row(
@@ -143,27 +157,29 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 }
 
 class GraphPainter extends CustomPainter {
-  Iterable<Ping> xList = [];
+  final Iterable<Ping> dataSet;
+  final DateTime start;
+  final DateTime end;
 
   // Widget width scale
   double scale;
 
   // Scroll controller or scrollview
   // Uses for position calculations
-  ScrollController scr;
+  double offset;
 
   // Container width
   // Uses for vievport calculations
   double cWidth;
 
-  GraphPainter(this.xList, this.scale, this.scr, this.cWidth);
+  GraphPainter(this.dataSet, this.scale, this.offset, this.cWidth, this.start, this.end);
 
   @override
   void paint(Canvas canvas, Size size) {
     // Main time values
     // Needs for scaling and positioning point on canvas
-    int first = xList.first.time.millisecondsSinceEpoch;
-    int last = xList.last.time.millisecondsSinceEpoch;
+    int first = start.millisecondsSinceEpoch;
+    int last = end.millisecondsSinceEpoch;
     int timeDiff = last - first;
 
     // Calc percent of canvas height by point ping
@@ -184,84 +200,60 @@ class GraphPainter extends CustomPainter {
 
     for (var i = 0; i < 5; i++) {
       TextSpan span = TextSpan(style: TextStyle(color: Color(0xffF5F5F5), fontSize: 6, fontWeight: FontWeight.w200), text: '${i * 200}');
-
       TextPainter tp = TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
 
       tp.layout();
-      tp.paint(canvas, Offset(0, hCalc(i * 200)));
-      tp.paint(canvas, Offset(size.width - 8, hCalc(i * 200)));
+      final twidth = tp.size.width;
+
+      tp.paint(canvas, Offset(offset, hCalc(i * 200)));
+      tp.paint(canvas, Offset((offset + cWidth) - twidth, hCalc(i * 200)));
     }
 
-    // Count of drawing point
-    // For perfomance debug
-    int count = 0;
-
-    // Stopwatch stopwatch = new Stopwatch()..start();
-
-    // Drawing loop for ping points
-
-    // Cut outer of screen points fir optimizations
-    // Uses scroll offset from parent to calc it
-    List<Ping> cutedList = [];
-
-    for (var i = 0; i < xList.length; i++) {
-      final p = xList.elementAt(i);
-      double time = wCalc(p.time.millisecondsSinceEpoch);
-      if (time > scr.offset && time < scr.offset + cWidth) {
-        cutedList.add(p);
-      }
-    }
-
-    // Percent of points for optimizations
-    // Last value regulate how many points will display on canvas
-    // double pWidth = cutedList.length / 9000;
-
-    for (var i = 0; i < cutedList.length; i++) {
-      final p = xList.elementAt(i);
-
-      double time = wCalc(p.time.millisecondsSinceEpoch);
-      int? ping = p.latency;
-      if (ping == null) continue;
-
-      // if (i % pWidth < 1) {
-      pingLine.moveTo((time), size.height - 16);
-      pingLine.lineTo((time), hCalc(ping) + 16);
-      count++;
-      // }
-    }
-
-    // Drawing loop for time
-    // Calculate time points by percent of width
+    final viewPortTimeStampStart = (last - timeDiff * (offset / size.width)).toInt();
+    final viewPortTimeStampEnd = (last - timeDiff * ((offset + cWidth) / size.width)).toInt();
 
     for (double i = 0; i < 0.99; i += (1 / (scale.floor() * 10))) {
       // Cut other optimization
-      if ((scr.offset) / size.width < i && (scr.offset + cWidth) / size.width > i) {
-        // Draw little points that uses as scale points
-        times.moveTo(size.width * i + 10, 0);
-        times.lineTo(size.width * i + 10, 5);
-
+      if ((offset) / size.width < i && (offset + cWidth) / size.width > i) {
         // Calc time by percent of with
         double timeNum = last - timeDiff * i;
         DateTime time = DateTime.fromMillisecondsSinceEpoch(timeNum.toInt());
 
         // Draw text with time
         TextSpan span = TextSpan(style: TextStyle(color: Color(0xffF5F5F5), fontSize: 10, fontWeight: FontWeight.w200), text: '${time.hour}:${time.minute}');
-
         TextPainter tp = TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-
         tp.layout();
-        tp.paint(canvas, Offset(size.width * i, size.height - 10));
+        final twidth = tp.size.width;
+        final theight = tp.size.height;
+        tp.paint(canvas, Offset(size.width * i, size.height - theight));
+
+        // Draw little points that uses as scale points
+        times.moveTo(size.width * i + twidth / 2, 8);
+        times.lineTo(size.width * i + twidth / 2, 16);
       }
     }
 
-    // print(count);
-    // print(cutedList.length);
-    // print('executed in ${stopwatch.elapsed}');
+    int count = 0;
+
+    for (var i = 0; i < dataSet.length; i++) {
+      final p = dataSet.elementAt(i);
+      final timeStamp = p.time.millisecondsSinceEpoch;
+      if (timeStamp > viewPortTimeStampStart || timeStamp < viewPortTimeStampEnd) continue;
+
+      double time = wCalc(timeStamp);
+      int? ping = p.latency;
+      ping ??= 1000;
+
+      pingLine.moveTo((time), size.height - 16);
+      pingLine.lineTo((time), hCalc(ping) + 16);
+      count++;
+    }
 
     // Set opacity lowest by increasing number of points
     // Its provide stacking on large datasets
     double opacityByCount() {
-      double intensityFactor = (1 / (count / size.width)).clamp(0, 1);
+      double intensityFactor = (1 / (count / cWidth)).clamp(0, 1);
+      // return intensityFactor;
       double expo = sqrt(intensityFactor).toDouble();
       return expo;
     }
