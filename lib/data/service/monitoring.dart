@@ -19,7 +19,7 @@ class MonitoringService {
     _monitoringSubscription = _createMonitoringStream().listen((ping) => _repository.addPing(ping));
   }
 
-  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(milliseconds: 164)}) async* {
+  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(milliseconds: 64)}) async* {
     //
     // Pseudo-parrallel
     //

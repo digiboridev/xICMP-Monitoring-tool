@@ -47,12 +47,12 @@ class _HostTileState extends State<HostTile> {
 
   init() async {
     lastSamples = Queue.from(await statsRepository.getLastPingsForHost(widget.host.adress, lastSamplesCount));
-    // statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress).cast<PingAdded>().forEach((event) {
-    //   if (!mounted) return;
-    //   lastSamples.addFirst(event.ping);
-    //   if (lastSamples.length > lastSamplesCount) lastSamples.removeLast();
-    //   setState(() {});
-    // });
+    statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress).cast<PingAdded>().forEach((event) {
+      if (!mounted) return;
+      lastSamples.addFirst(event.ping);
+      if (lastSamples.length > lastSamplesCount) lastSamples.removeLast();
+      setState(() {});
+    });
     setState(() {});
   }
 
@@ -62,7 +62,6 @@ class _HostTileState extends State<HostTile> {
       children: [
         InkWell(
           borderRadius: BorderRadius.circular(16),
-          // onDoubleTap: toggleRunning,
           onTap: () => setState(() => expanded = !expanded),
           child: Opacity(
             opacity: widget.host.enabled ? 1 : 0.5,
@@ -70,6 +69,7 @@ class _HostTileState extends State<HostTile> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                SizedBox(width: 8),
                 RepaintBoundary(
                   child: StreamBuilder(
                     stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
@@ -89,49 +89,54 @@ class _HostTileState extends State<HostTile> {
                 RepaintBoundary(
                   child: SizedBox(width: 70, height: 24, child: CustomPaint(painter: TileGraph(lastSamples, length: lastSamplesCount))),
                 ),
-                Icon(!expanded ? Icons.arrow_drop_down : Icons.arrow_drop_up),
+                SizedBox(width: 8),
+                Icon(!expanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up),
+                PopupMenuButton(
+                  color: Colors.amber,
+                  icon: Icon(
+                    Icons.more_horiz,
+                    color: Colors.white,
+                  ),
+                  itemBuilder: (context) => [
+                    widget.host.enabled
+                        ? PopupMenuItem(
+                            value: 'toggle',
+                            child: Text('Disable'),
+                          )
+                        : PopupMenuItem(
+                            value: 'toggle',
+                            child: Text('Enable'),
+                          ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Delete'),
+                    ),
+                    PopupMenuItem(
+                      value: 'export',
+                      child: Text('Export'),
+                    ),
+                  ],
+                  onSelected: (value) {
+                    if (value == 'toggle') toggleRunning();
+                    if (value == 'delete') deleteHost(context);
+                    // TODO: implement export
+                  },
+                ),
               ],
             ),
           ),
         ),
         AnimatedContainer(
           height: expanded ? 250 : 0,
-          duration: Duration(milliseconds: 400),
-          curve: expanded ? Curves.elasticOut : Curves.easeOutExpo,
+          duration: Duration(milliseconds: 600),
+          curve: expanded ? Curves.bounceOut : Curves.easeOutExpo,
           child: AnimatedOpacity(
-            duration: Duration(milliseconds: 150),
+            duration: Duration(milliseconds: 250),
             curve: Curves.easeInExpo,
             opacity: expanded ? 1 : 0,
             child: OverflowBox(
               maxHeight: 250,
-              child: expanded
-                  ? Column(
-                      children: [
-                        Expanded(child: InteractiveGraph(host: widget.host.adress)),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                widget.host.enabled ? Icons.pause_circle_outline : Icons.play_circle_outline,
-                                size: 20,
-                                color: Color(0xffF5F5F5),
-                              ),
-                              onPressed: () => toggleRunning(),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.delete_outline,
-                                size: 20,
-                                color: Color(0xffF5F5F5),
-                              ),
-                              onPressed: () => deleteHost(context), // TODO dialog
-                            ),
-                          ],
-                        ),
-                      ],
-                    )
-                  : null,
+              child: expanded ? InteractiveGraph(host: widget.host.adress) : null,
             ),
           ),
         ),

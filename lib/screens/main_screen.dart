@@ -70,12 +70,18 @@ class _HostsListState extends State<HostsList> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: const [
+            // TODO toltips
+            SizedBox(width: 8),
             Text('Act'),
             SizedBox(width: 16),
             Expanded(child: Text('Host')),
             SizedBox(width: 16),
-            Text('Last 100 summary'),
-            SizedBox(width: 32),
+            Text('Stats'),
+            SizedBox(width: 24),
+            Text('Preview'),
+            SizedBox(width: 42),
+            Text('More'),
+            SizedBox(width: 4),
           ],
         ),
         const Divider(),

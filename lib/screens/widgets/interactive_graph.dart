@@ -21,7 +21,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   List<Ping> data = [];
 
   // Period of time to show
-  Duration selectedPeriod = Duration(minutes: 5);
+  late Duration selectedPeriod = Duration(minutes: 15);
   late DateTime from = DateTime.now().subtract(selectedPeriod);
   late DateTime to = DateTime.now();
 
@@ -50,17 +50,29 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     });
   }
 
-  loadData() async {
+  loadData({bool force = false}) async {
     final rasterWidth = MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio;
+    if (force) {
+      final now = DateTime.now();
+      from = now.subtract(selectedPeriod);
+      to = now;
 
-    if (scale < prevMaxScale) return;
-    final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 4 * scale).toInt());
-    if (!mounted) return;
+      final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 5 * scale).toInt());
+      if (!mounted) return;
 
-    print('loaded ${newData.length} points for $scale scale');
-    prevMaxScale = scale;
-    data = newData;
-    setState(() => {});
+      print('loaded ${newData.length} points for $scale scale, forced');
+      data = newData;
+      setState(() => {});
+    } else {
+      if (scale < prevMaxScale) return;
+      final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 10 * scale).toInt());
+      if (!mounted) return;
+
+      print('loaded ${newData.length} points for $scale scale');
+      prevMaxScale = scale;
+      data = newData;
+      setState(() => {});
+    }
   }
 
   @override
@@ -121,7 +133,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                       onScaleEnd: (details) => loadData(),
                       behavior: HitTestBehavior.translucent,
                       child: Container(),
-                    )
+                    ),
                   ],
                 ),
               );
@@ -133,28 +145,47 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
             final width = constrains.maxWidth;
             return Row(
               children: [
-                Text('Period: ', style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400)),
-                DropdownButton<Duration>(
-                  value: selectedPeriod,
-                  onChanged: (Duration? newValue) {
-                    if (newValue == null) return;
-                    setState(() {
-                      final now = DateTime.now();
-                      selectedPeriod = newValue;
-                      from = now.subtract(selectedPeriod);
-                      to = now;
-                      scale = 1.0;
-                      prevMaxScale = 0;
-                      offset = 0;
-                      scr.jumpTo(0);
-                      loadData();
-                    });
-                    FocusScope.of(context).unfocus();
+                // Text('Period: ', style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400)),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white54, width: 1),
+                    // color: Color(0xffF5F5F5),
+                  ),
+                  child: DropdownButton<Duration>(
+                    icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+                    isDense: true,
+                    isExpanded: false,
+                    value: selectedPeriod,
+                    alignment: AlignmentDirectional.center,
+                    borderRadius: BorderRadius.circular(16),
+                    dropdownColor: Colors.amber,
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    onChanged: (Duration? newValue) {
+                      if (newValue == null) return;
+                      setState(() {
+                        final now = DateTime.now();
+                        selectedPeriod = newValue;
+                        from = now.subtract(selectedPeriod);
+                        to = now;
+                        scale = 1.0;
+                        prevMaxScale = 0;
+                        offset = 0;
+                        scr.jumpTo(0);
+                        loadData();
+                      });
+                      FocusScope.of(context).requestFocus(FocusNode());
+                    },
+                    style: TextStyle(fontSize: 12),
+                    underline: SizedBox.shrink(),
+                    items: periodDropdownList,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    loadData(force: true);
                   },
-                  style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400),
-                  underline: SizedBox.shrink(),
-                  focusColor: Colors.amber,
-                  items: periodDropdownList,
+                  icon: const Icon(Icons.refresh, size: 20),
                 ),
                 const Spacer(),
                 IconButton(
@@ -166,7 +197,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                       curve: Curves.easeInOut,
                     );
                   },
-                  icon: const Icon(Icons.fast_rewind, size: 20),
+                  icon: const Icon(Icons.keyboard_double_arrow_left_outlined, size: 20),
                 ),
                 IconButton(
                   onPressed: () {
@@ -177,7 +208,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                       curve: Curves.easeInOut,
                     );
                   },
-                  icon: const Icon(Icons.fast_forward, size: 20),
+                  icon: const Icon(Icons.keyboard_double_arrow_right_outlined, size: 20),
                 ),
                 IconButton(
                   onPressed: () {
@@ -202,6 +233,14 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                     loadData();
                   },
                   icon: const Icon(Icons.zoom_out, size: 20),
+                ),
+                IconButton(
+                  onPressed: () {
+                    offset = 0;
+                    scale = 1;
+                    setState(() {});
+                  },
+                  icon: const Icon(Icons.settings_backup_restore_rounded, size: 20),
                 ),
               ],
             );
@@ -323,8 +362,8 @@ class GraphPainter extends CustomPainter {
     // so it can be recognizes as gradient of intensity rather then mess of lines
     double opacityByCount() {
       double intensityFactor = (1 / (count / viewPortRasterWidth)).clamp(0, 1);
-      double expo = sqrt(intensityFactor).toDouble();
-      return expo;
+      // double expo = sqrt(intensityFactor).toDouble();
+      return intensityFactor;
     }
 
     canvas.drawPath(
@@ -352,24 +391,20 @@ class GraphPainter extends CustomPainter {
 
 List<DropdownMenuItem<Duration>> periodDropdownList = [
   DropdownMenuItem(
-    value: Duration(minutes: 5),
-    child: Text('5 mins'),
+    value: Duration(minutes: 15),
+    child: Text('15 minutes'),
   ),
   DropdownMenuItem(
-    value: Duration(minutes: 30),
-    child: Text('30 mins'),
-  ),
-  DropdownMenuItem(
-    value: Duration(hours: 3),
-    child: Text('3 Hours'),
+    value: Duration(hours: 1),
+    child: Text('1 hour'),
   ),
   DropdownMenuItem(
     value: Duration(hours: 6),
-    child: Text('6 Hours'),
+    child: Text('6 hours'),
   ),
   DropdownMenuItem(
     value: Duration(hours: 12),
-    child: Text('12 Hours'),
+    child: Text('12 hours'),
   ),
   DropdownMenuItem(
     value: Duration(days: 1),
@@ -377,7 +412,7 @@ List<DropdownMenuItem<Duration>> periodDropdownList = [
   ),
   DropdownMenuItem(
     value: Duration(days: 3),
-    child: Text('3 Days'),
+    child: Text('3 days'),
   ),
   DropdownMenuItem(
     value: Duration(days: 7),

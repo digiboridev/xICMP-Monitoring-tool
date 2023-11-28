@@ -27,7 +27,7 @@ class PingStatsApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.amber.shade800,
+          seedColor: Colors.blueGrey,
           brightness: Brightness.dark,
         ),
       ),
