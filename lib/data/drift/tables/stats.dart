@@ -13,9 +13,8 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
   Future deleteAllHosts() => delete(hostsTable).go();
   Future<List<DriftHost>> getAllHosts() => select(hostsTable).get();
   Future<HostStats> hostStats(String host) async {
-    // TODO max
     final query = customSelect(
-      'SELECT avg(latency) as avg, min(latency) as min, max(latency) as max, count(*) as count, count(latency = 1001) as numCount FROM ping_table WHERE host = ?',
+      'SELECT avg(latency) as avg, min(latency) as min, max(latency) as max, count(*) as count, count(lost) as lostCount FROM ping_table WHERE host = ?',
       variables: [Variable.withString(host)],
     );
     final result = await query.getSingle();
@@ -23,9 +22,9 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
     double min = result.read('min');
     double max = result.read('max');
     int count = result.read('count');
-    int numCount = result.read('numCount');
-    int lossPercent = (count - numCount) ~/ count * 100;
-    return HostStats(avg, min, max, count, numCount, lossPercent);
+    int lostCount = result.read('lostCount');
+    int lossPercent = lostCount ~/ count * 100;
+    return HostStats(avg.truncate(), min.truncate(), max.truncate(), count, lostCount, lossPercent);
   }
 
   Future addPing(DriftPing ping) => into(pingTable).insert(ping, mode: InsertMode.insertOrReplace);
@@ -37,10 +36,20 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
     final toStamp = to.millisecondsSinceEpoch;
 
     final query = customSelect(
-      'SELECT latency, timestamp FROM ping_table WHERE host = ? AND timestamp BETWEEN ? AND ? ',
+      'SELECT latency, timestamp, lost FROM ping_table WHERE host = ? AND timestamp BETWEEN ? AND ? ',
       variables: [Variable.withString(host), Variable.withInt(fromStamp), Variable.withInt(toStamp)],
     );
-    return await query.map((row) => DriftPing(host: host, timestamp: row.read('timestamp'), latency: row.read<double>('latency').toInt())).get();
+
+    final mappedQuery = query.map(
+      (row) => DriftPing(
+        host: host,
+        timestamp: row.read('timestamp'),
+        latency: row.read<double>('latency').toInt(),
+        lost: row.read('lost'),
+      ),
+    );
+
+    return await mappedQuery.get();
   }
 
   Future<List<DriftPing>> getPingsForHostPeriodScale(String host, DateTime from, DateTime to, int scale) async {
@@ -49,10 +58,19 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
     final periodMs = (toStamp - fromStamp) ~/ scale;
 
     final query = customSelect(
-      'SELECT round(avg(latency)) as latency, timestamp FROM ping_table WHERE host = ? AND timestamp BETWEEN ? AND ? GROUP BY timestamp / ?',
+      'SELECT round(avg(latency)) as latency, timestamp, lost FROM ping_table WHERE host = ? AND timestamp BETWEEN ? AND ? GROUP BY timestamp / ?',
       variables: [Variable.withString(host), Variable.withInt(fromStamp), Variable.withInt(toStamp), Variable.withInt(periodMs)],
     );
-    return await query.map((row) => DriftPing(host: host, timestamp: row.read('timestamp'), latency: row.read<double>('latency').toInt())).get();
+
+    final mappedQuery = query.map(
+      (row) => DriftPing(
+        host: host,
+        timestamp: row.read('timestamp'),
+        latency: row.read<double>('latency').toInt(),
+        lost: row.read('lost'),
+      ),
+    );
+    return await mappedQuery.get();
   }
 
   Future<List<DriftPing>> getLastPingsForHost(String host, int count) => (select(pingTable)
@@ -79,4 +97,5 @@ class PingTable extends Table {
   TextColumn get host => text().references(HostsTable, #adress, onDelete: KeyAction.cascade)();
   IntColumn get timestamp => integer()();
   IntColumn get latency => integer()();
+  BoolColumn get lost => boolean().withDefault(const Constant(false))();
 }

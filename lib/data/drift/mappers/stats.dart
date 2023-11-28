@@ -6,16 +6,16 @@ DriftHost _fromHost(Host host) {
   return DriftHost(adress: host.adress, enabled: host.enabled);
 }
 
-Host _toHost(DriftHost host) {
-  return Host(adress: host.adress, enabled: host.enabled);
+Host _toHost(DriftHost driftHost) {
+  return Host(adress: driftHost.adress, enabled: driftHost.enabled);
 }
 
 DriftPing _fromPing(Ping ping) {
-  return DriftPing(host: ping.host, timestamp: ping.time.millisecondsSinceEpoch, latency: ping.latency);
+  return DriftPing(host: ping.host, timestamp: ping.time.millisecondsSinceEpoch, latency: ping.latency, lost: ping.lost);
 }
 
-Ping _toPing(DriftPing ping) {
-  return Ping(host: ping.host, time: DateTime.fromMillisecondsSinceEpoch(ping.timestamp), latency: ping.latency);
+Ping _toPing(DriftPing driftPing) {
+  return Ping(host: driftPing.host, time: DateTime.fromMillisecondsSinceEpoch(driftPing.timestamp), latency: driftPing.latency, lost: driftPing.lost);
 }
 
 abstract class StatsMapper {

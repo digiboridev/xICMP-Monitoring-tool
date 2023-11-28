@@ -65,6 +65,7 @@ class _HostsListState extends State<HostsList> {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16.0),
+      physics: BouncingScrollPhysics(),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

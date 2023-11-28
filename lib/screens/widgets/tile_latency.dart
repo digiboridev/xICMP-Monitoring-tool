@@ -35,15 +35,16 @@ class _TileLatencyState extends State<TileLatency> {
     min = 0;
 
     for (var item in widget.samples) {
-      int? latency = item.latency;
+      int latency = item.latency;
 
-      if (latency == 1001) {
+      if (item.lost) {
         lossCount++;
       } else {
         sum += latency;
         if (min == 0 || latency < min) min = latency;
         if (max == 0 || latency > max) max = latency;
       }
+
       count++;
     }
 

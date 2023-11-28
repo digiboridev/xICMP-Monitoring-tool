@@ -219,8 +219,17 @@ class $PingTableTable extends PingTable
   late final GeneratedColumn<int> latency = GeneratedColumn<int>(
       'latency', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _lostMeta = const VerificationMeta('lost');
   @override
-  List<GeneratedColumn> get $columns => [host, timestamp, latency];
+  late final GeneratedColumn<bool> lost = GeneratedColumn<bool>(
+      'lost', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("lost" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [host, timestamp, latency, lost];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -249,6 +258,10 @@ class $PingTableTable extends PingTable
     } else if (isInserting) {
       context.missing(_latencyMeta);
     }
+    if (data.containsKey('lost')) {
+      context.handle(
+          _lostMeta, lost.isAcceptableOrUnknown(data['lost']!, _lostMeta));
+    }
     return context;
   }
 
@@ -264,6 +277,8 @@ class $PingTableTable extends PingTable
           .read(DriftSqlType.int, data['${effectivePrefix}timestamp'])!,
       latency: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}latency'])!,
+      lost: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}lost'])!,
     );
   }
 
@@ -277,14 +292,19 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
   final String host;
   final int timestamp;
   final int latency;
+  final bool lost;
   const DriftPing(
-      {required this.host, required this.timestamp, required this.latency});
+      {required this.host,
+      required this.timestamp,
+      required this.latency,
+      required this.lost});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['host'] = Variable<String>(host);
     map['timestamp'] = Variable<int>(timestamp);
     map['latency'] = Variable<int>(latency);
+    map['lost'] = Variable<bool>(lost);
     return map;
   }
 
@@ -293,6 +313,7 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
       host: Value(host),
       timestamp: Value(timestamp),
       latency: Value(latency),
+      lost: Value(lost),
     );
   }
 
@@ -303,6 +324,7 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
       host: serializer.fromJson<String>(json['host']),
       timestamp: serializer.fromJson<int>(json['timestamp']),
       latency: serializer.fromJson<int>(json['latency']),
+      lost: serializer.fromJson<bool>(json['lost']),
     );
   }
   @override
@@ -312,50 +334,59 @@ class DriftPing extends DataClass implements Insertable<DriftPing> {
       'host': serializer.toJson<String>(host),
       'timestamp': serializer.toJson<int>(timestamp),
       'latency': serializer.toJson<int>(latency),
+      'lost': serializer.toJson<bool>(lost),
     };
   }
 
-  DriftPing copyWith({String? host, int? timestamp, int? latency}) => DriftPing(
+  DriftPing copyWith(
+          {String? host, int? timestamp, int? latency, bool? lost}) =>
+      DriftPing(
         host: host ?? this.host,
         timestamp: timestamp ?? this.timestamp,
         latency: latency ?? this.latency,
+        lost: lost ?? this.lost,
       );
   @override
   String toString() {
     return (StringBuffer('DriftPing(')
           ..write('host: $host, ')
           ..write('timestamp: $timestamp, ')
-          ..write('latency: $latency')
+          ..write('latency: $latency, ')
+          ..write('lost: $lost')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(host, timestamp, latency);
+  int get hashCode => Object.hash(host, timestamp, latency, lost);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is DriftPing &&
           other.host == this.host &&
           other.timestamp == this.timestamp &&
-          other.latency == this.latency);
+          other.latency == this.latency &&
+          other.lost == this.lost);
 }
 
 class PingTableCompanion extends UpdateCompanion<DriftPing> {
   final Value<String> host;
   final Value<int> timestamp;
   final Value<int> latency;
+  final Value<bool> lost;
   final Value<int> rowid;
   const PingTableCompanion({
     this.host = const Value.absent(),
     this.timestamp = const Value.absent(),
     this.latency = const Value.absent(),
+    this.lost = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PingTableCompanion.insert({
     required String host,
     required int timestamp,
     required int latency,
+    this.lost = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : host = Value(host),
         timestamp = Value(timestamp),
@@ -364,12 +395,14 @@ class PingTableCompanion extends UpdateCompanion<DriftPing> {
     Expression<String>? host,
     Expression<int>? timestamp,
     Expression<int>? latency,
+    Expression<bool>? lost,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (host != null) 'host': host,
       if (timestamp != null) 'timestamp': timestamp,
       if (latency != null) 'latency': latency,
+      if (lost != null) 'lost': lost,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -378,11 +411,13 @@ class PingTableCompanion extends UpdateCompanion<DriftPing> {
       {Value<String>? host,
       Value<int>? timestamp,
       Value<int>? latency,
+      Value<bool>? lost,
       Value<int>? rowid}) {
     return PingTableCompanion(
       host: host ?? this.host,
       timestamp: timestamp ?? this.timestamp,
       latency: latency ?? this.latency,
+      lost: lost ?? this.lost,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -399,6 +434,9 @@ class PingTableCompanion extends UpdateCompanion<DriftPing> {
     if (latency.present) {
       map['latency'] = Variable<int>(latency.value);
     }
+    if (lost.present) {
+      map['lost'] = Variable<bool>(lost.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -411,6 +449,7 @@ class PingTableCompanion extends UpdateCompanion<DriftPing> {
           ..write('host: $host, ')
           ..write('timestamp: $timestamp, ')
           ..write('latency: $latency, ')
+          ..write('lost: $lost, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();

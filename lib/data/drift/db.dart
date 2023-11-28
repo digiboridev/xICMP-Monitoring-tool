@@ -20,7 +20,7 @@ class DB extends _$DB {
       });
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {

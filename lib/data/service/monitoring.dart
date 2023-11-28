@@ -19,7 +19,7 @@ class MonitoringService {
     _monitoringSubscription = _createMonitoringStream().listen((ping) => _repository.addPing(ping));
   }
 
-  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(milliseconds: 64)}) async* {
+  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(milliseconds: 164)}) async* {
     //
     // Pseudo-parrallel
     //
@@ -67,10 +67,10 @@ class MonitoringService {
     }
   }
 
-  Future<Ping> _pingTo(String adress) async {
+  Future<Ping> _pingTo(String adress, {int limit = 1000}) async {
     final sendTime = DateTime.now();
     try {
-      final proc = await Process.run('ping', ['-c', '1', adress]).timeout(const Duration(seconds: 1));
+      final proc = await Process.run('ping', ['-c', '1', adress]).timeout(Duration(milliseconds: limit));
       final out = proc.stdout;
       // print(out);
       if (out is String) {
@@ -78,7 +78,7 @@ class MonitoringService {
         if (match != null) {
           final latency = double.tryParse(match);
           if (latency != null) {
-            return Ping(host: adress, time: sendTime, latency: latency.toInt().clamp(0, 1000));
+            return Ping(host: adress, time: sendTime, latency: latency.toInt().clamp(0, limit), lost: false);
           }
         }
       }
@@ -87,6 +87,6 @@ class MonitoringService {
     } catch (e, s) {
       AppLogger.error('$e', name: 'MonitoringService', error: e, stack: s);
     }
-    return Ping(host: adress, time: sendTime, latency: 1001);
+    return Ping(host: adress, time: sendTime, latency: limit, lost: true);
   }
 }

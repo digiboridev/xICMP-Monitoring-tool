@@ -1,5 +1,4 @@
 import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/host.dart';
@@ -7,7 +6,6 @@ import 'package:xicmpmt/data/models/ping.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
 import 'package:xicmpmt/screens/widgets/interactive_graph.dart';
-import 'package:xicmpmt/screens/widgets/tile_host_stats.dart';
 import 'package:xicmpmt/screens/widgets/blinking_circle.dart';
 import 'package:xicmpmt/screens/widgets/tile_graph.dart';
 import 'package:xicmpmt/screens/widgets/tile_latency.dart';
@@ -49,12 +47,12 @@ class _HostTileState extends State<HostTile> {
 
   init() async {
     lastSamples = Queue.from(await statsRepository.getLastPingsForHost(widget.host.adress, lastSamplesCount));
-    statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress).cast<PingAdded>().forEach((event) {
-      if (!mounted) return;
-      lastSamples.addFirst(event.ping);
-      if (lastSamples.length > lastSamplesCount) lastSamples.removeLast();
-      setState(() {});
-    });
+    // statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress).cast<PingAdded>().forEach((event) {
+    //   if (!mounted) return;
+    //   lastSamples.addFirst(event.ping);
+    //   if (lastSamples.length > lastSamplesCount) lastSamples.removeLast();
+    //   setState(() {});
+    // });
     setState(() {});
   }
 
@@ -63,25 +61,26 @@ class _HostTileState extends State<HostTile> {
     return Column(
       children: [
         InkWell(
-          onDoubleTap: toggleRunning,
-          onTap: () {
-            setState(() => expanded = !expanded);
-          },
+          borderRadius: BorderRadius.circular(16),
+          // onDoubleTap: toggleRunning,
+          onTap: () => setState(() => expanded = !expanded),
           child: Opacity(
             opacity: widget.host.enabled ? 1 : 0.5,
             child: Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                StreamBuilder(
-                  stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
-                  builder: (context, snapshot) {
-                    return BlinkingCircle();
-                  },
+                RepaintBoundary(
+                  child: StreamBuilder(
+                    stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
+                    builder: (context, snapshot) => BlinkingCircle(),
+                  ),
                 ),
                 SizedBox(width: 16),
                 Expanded(
-                  child: Text(widget.host.adress, overflow: TextOverflow.fade, softWrap: false),
+                  child: RepaintBoundary(
+                    child: Text(key: Key(widget.host.adress), widget.host.adress, overflow: TextOverflow.fade, softWrap: false),
+                  ),
                 ),
                 SizedBox(width: 16),
                 RepaintBoundary(
@@ -95,49 +94,51 @@ class _HostTileState extends State<HostTile> {
             ),
           ),
         ),
-        AnimatedContainer(
-          height: expanded ? 270 : 0,
-          duration: Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          child: ClipRRect(
-            child: OverflowBox(
-              maxHeight: 270,
-              child: expanded
-                  ? Column(
-                      children: [
-                        TileHostStats(host: widget.host.adress),
-                        Expanded(child: InteractiveGraph(host: widget.host.adress)),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(
-                                      widget.host.enabled ? Icons.pause_circle_outline : Icons.play_circle_outline,
-                                      size: 20,
-                                      color: Color(0xffF5F5F5),
+        RepaintBoundary(
+          child: AnimatedContainer(
+            height: expanded ? 250 : 0,
+            duration: Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: ClipRRect(
+              child: OverflowBox(
+                maxHeight: 250,
+                child: expanded
+                    ? Column(
+                        children: [
+                          // TileHostStats(host: widget.host.adress),
+                          Expanded(child: InteractiveGraph(host: widget.host.adress)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        widget.host.enabled ? Icons.pause_circle_outline : Icons.play_circle_outline,
+                                        size: 20,
+                                        color: Color(0xffF5F5F5),
+                                      ),
+                                      onPressed: () => toggleRunning(),
                                     ),
-                                    onPressed: () => toggleRunning(),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.delete_outline,
-                                      size: 20,
-                                      color: Color(0xffF5F5F5),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.delete_outline,
+                                        size: 20,
+                                        color: Color(0xffF5F5F5),
+                                      ),
+                                      onPressed: () => deleteHost(context), // TODO dialog
                                     ),
-                                    onPressed: () => deleteHost(context), // TODO dialog
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    )
-                  : null,
+                            ],
+                          ),
+                        ],
+                      )
+                    : null,
+              ),
             ),
           ),
         ),

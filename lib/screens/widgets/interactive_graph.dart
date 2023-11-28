@@ -83,7 +83,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   loadData() async {
     final rasterWidth = MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio;
 
-    final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (2000 * scale).toInt());
+    final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * scale).toInt());
     if (!mounted) return;
 
     data = newData;
