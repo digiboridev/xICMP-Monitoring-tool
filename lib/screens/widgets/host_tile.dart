@@ -94,51 +94,44 @@ class _HostTileState extends State<HostTile> {
             ),
           ),
         ),
-        RepaintBoundary(
-          child: AnimatedContainer(
-            height: expanded ? 250 : 0,
-            duration: Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            child: ClipRRect(
-              child: OverflowBox(
-                maxHeight: 250,
-                child: expanded
-                    ? Column(
-                        children: [
-                          // TileHostStats(host: widget.host.adress),
-                          Expanded(child: InteractiveGraph(host: widget.host.adress)),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(
-                                        widget.host.enabled ? Icons.pause_circle_outline : Icons.play_circle_outline,
-                                        size: 20,
-                                        color: Color(0xffF5F5F5),
-                                      ),
-                                      onPressed: () => toggleRunning(),
-                                    ),
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.delete_outline,
-                                        size: 20,
-                                        color: Color(0xffF5F5F5),
-                                      ),
-                                      onPressed: () => deleteHost(context), // TODO dialog
-                                    ),
-                                  ],
-                                ),
+        AnimatedContainer(
+          height: expanded ? 250 : 0,
+          duration: Duration(milliseconds: 400),
+          curve: expanded ? Curves.elasticOut : Curves.easeOutExpo,
+          child: AnimatedOpacity(
+            duration: Duration(milliseconds: 150),
+            curve: Curves.easeInExpo,
+            opacity: expanded ? 1 : 0,
+            child: OverflowBox(
+              maxHeight: 250,
+              child: expanded
+                  ? Column(
+                      children: [
+                        Expanded(child: InteractiveGraph(host: widget.host.adress)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                widget.host.enabled ? Icons.pause_circle_outline : Icons.play_circle_outline,
+                                size: 20,
+                                color: Color(0xffF5F5F5),
                               ),
-                            ],
-                          ),
-                        ],
-                      )
-                    : null,
-              ),
+                              onPressed: () => toggleRunning(),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.delete_outline,
+                                size: 20,
+                                color: Color(0xffF5F5F5),
+                              ),
+                              onPressed: () => deleteHost(context), // TODO dialog
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : null,
             ),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/ping.dart';
@@ -14,58 +15,24 @@ class InteractiveGraph extends StatefulWidget {
 
 class _InteractiveGraphState extends State<InteractiveGraph> {
   final StatsRepository statsRepository = SL.statsRepository;
+  final ScrollController scr = ScrollController();
 
   List<Ping> data = [];
 
-  //Init scale value
-  //Uses for make graph zoomable
-  double scale = 1.0;
-  double offset = 0;
-
-  //Uses to zoom and scroll calculations
-  double prevscale = 1.0;
-  double prevOffset = 0;
-
-  late final ScrollController scr = ScrollController();
-
+  // Period of time to show
   Duration selectedPeriod = Duration(minutes: 5);
   late DateTime from = DateTime.now().subtract(selectedPeriod);
   late DateTime to = DateTime.now();
 
-  List<DropdownMenuItem<Duration>> periodDropdownList = [
-    DropdownMenuItem(
-      value: Duration(minutes: 5),
-      child: Text('5 mins'),
-    ),
-    DropdownMenuItem(
-      value: Duration(minutes: 30),
-      child: Text('30 mins'),
-    ),
-    DropdownMenuItem(
-      value: Duration(hours: 3),
-      child: Text('3 Hours'),
-    ),
-    DropdownMenuItem(
-      value: Duration(hours: 6),
-      child: Text('6 Hours'),
-    ),
-    DropdownMenuItem(
-      value: Duration(hours: 12),
-      child: Text('12 Hours'),
-    ),
-    DropdownMenuItem(
-      value: Duration(days: 1),
-      child: Text('1 day'),
-    ),
-    DropdownMenuItem(
-      value: Duration(days: 3),
-      child: Text('3 Days'),
-    ),
-    DropdownMenuItem(
-      value: Duration(days: 7),
-      child: Text('Week'),
-    ),
-  ];
+  //Uses for make graph zoomable
+  double scale = 1.0;
+  double offset = 0;
+
+  // Uses to zoom and scroll calculations
+  double prevscale = 1.0;
+  double prevOffset = 0;
+
+  double prevMaxScale = 0;
 
   @override
   void initState() {
@@ -73,9 +40,11 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadData();
       scr.addListener(() {
-        offset = scr.offset;
-        print(offset);
-        setState(() {});
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          offset = scr.offset;
+          setState(() {});
+        });
       });
     });
   }
@@ -83,11 +52,13 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   loadData() async {
     final rasterWidth = MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio;
 
-    final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * scale).toInt());
+    if (scale < prevMaxScale) return;
+    final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 4 * scale).toInt());
     if (!mounted) return;
 
+    print('loaded ${newData.length} points for $scale scale');
+    prevMaxScale = scale;
     data = newData;
-
     setState(() => {});
   }
 
@@ -103,71 +74,137 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
               return SizedBox(
                 width: width,
                 height: height,
-                child: SingleChildScrollView(
-                  controller: scr,
-                  scrollDirection: Axis.horizontal,
-                  // Detects scale gesture
-                  child: GestureDetector(
-                    // Hold last values before changes
-                    onScaleStart: (details) {
-                      prevOffset = scr.offset;
-                      prevscale = scale;
-                    },
-                    // Adjust new scale loocking on previous values
-                    onScaleUpdate: (details) {
-                      setState(() {
-                        // Adjust scale
-                        scale = prevscale * details.scale;
-                        scale < 1.0 ? scale = 1.0 : scale = scale;
-
-                        // Jump to offset proportionaly to scale
-                        double newOffset = prevOffset * details.scale + details.focalPoint.dx * (details.scale - 1);
-                        if (scale > 1.0) scr.jumpTo(newOffset);
-                        print(scale);
-                      });
-                    },
-
-                    onScaleEnd: (details) {
-                      loadData();
-                      print('end');
-                    },
-                    child: SizedBox(
-                      // Grow conteiner width depend on scale value
-                      width: width * scale,
-                      child: CustomPaint(
-                        painter: GraphPainter(data, scale, offset, width, from, to),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: RepaintBoundary(
+                        child: SingleChildScrollView(
+                          clipBehavior: Clip.none,
+                          controller: scr,
+                          scrollDirection: Axis.horizontal,
+                          physics: BouncingScrollPhysics(),
+                          dragStartBehavior: DragStartBehavior.down,
+                          child: SizedBox(
+                            // Grow conteiner width depend on scale value
+                            width: width * scale,
+                            child: CustomPaint(
+                              willChange: true,
+                              isComplex: true,
+                              painter: GraphPainter(data, scale, offset, width, MediaQuery.of(context).devicePixelRatio, from, to),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    GestureDetector(
+                      onScaleStart: (details) {
+                        prevOffset = scr.offset;
+                        prevscale = scale;
+                      },
+                      // Adjust new scale loocking on previous values
+                      onScaleUpdate: (details) {
+                        setState(() {
+                          // Adjust scale
+                          scale = prevscale * details.scale;
+                          if (scale < 1.0) scale = 1.0;
+                          // Adjust offset
+                          final newOffset = prevOffset * details.scale + details.focalPoint.dx * (details.scale - 1);
+                          // Jump to offset proportionaly to scale
+                          // if (scale > 1.0) {
+                          //   scr.jumpTo(offset);
+                          //   offset = newOffset;
+                          // }
+                        });
+                      },
+                      onScaleEnd: (details) => loadData(),
+                      behavior: HitTestBehavior.translucent,
+                      child: Container(),
+                    )
+                  ],
                 ),
               );
             },
           ),
         ),
-        Row(
-          children: [
-            Text('Show: ', style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400)),
-            DropdownButton(
-              value: selectedPeriod,
-              onChanged: (Duration? newValue) {
-                if (newValue == null) return;
-                setState(() {
-                  final now = DateTime.now();
-                  selectedPeriod = newValue;
-                  from = now.subtract(selectedPeriod);
-                  to = now;
-                  scale = 1.0;
-                  offset = 0;
-                  scr.jumpTo(0);
-                  loadData();
-                });
-                FocusScope.of(context).unfocus();
-              },
-              style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400),
-              underline: SizedBox.shrink(),
-              items: periodDropdownList,
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, constrains) {
+            final width = constrains.maxWidth;
+            return Row(
+              children: [
+                Text('Period: ', style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400)),
+                DropdownButton<Duration>(
+                  value: selectedPeriod,
+                  onChanged: (Duration? newValue) {
+                    if (newValue == null) return;
+                    setState(() {
+                      final now = DateTime.now();
+                      selectedPeriod = newValue;
+                      from = now.subtract(selectedPeriod);
+                      to = now;
+                      scale = 1.0;
+                      prevMaxScale = 0;
+                      offset = 0;
+                      scr.jumpTo(0);
+                      loadData();
+                    });
+                    FocusScope.of(context).unfocus();
+                  },
+                  style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400),
+                  underline: SizedBox.shrink(),
+                  focusColor: Colors.amber,
+                  items: periodDropdownList,
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () {
+                    if (scale == 1.0) return;
+                    scr.animateTo(
+                      offset - (width / 10),
+                      duration: Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  icon: const Icon(Icons.fast_rewind, size: 20),
+                ),
+                IconButton(
+                  onPressed: () {
+                    if (scale == 1.0) return;
+                    scr.animateTo(
+                      offset + (width / 10),
+                      duration: Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  icon: const Icon(Icons.fast_forward, size: 20),
+                ),
+                IconButton(
+                  onPressed: () {
+                    scale = scale * 1.1;
+                    if (scale < 1.0) scale = 1.0;
+                    offset = offset * 1.1 + width * 0.1 / 2;
+                    if (scale == 1.0) offset = 0;
+                    scr.jumpTo(offset);
+                    setState(() {});
+                    loadData();
+                  },
+                  icon: const Icon(Icons.zoom_in, size: 20),
+                ),
+                IconButton(
+                  onPressed: () {
+                    scale = scale / 1.1;
+                    if (scale < 1.0) scale = 1.0;
+                    offset = offset / 1.1 - width * 0.1 / 2.2;
+                    if (scale == 1.0) offset = 0;
+                    scr.jumpTo(offset);
+                    setState(() {});
+                    loadData();
+                  },
+                  icon: const Icon(Icons.zoom_out, size: 20),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -187,10 +224,12 @@ class GraphPainter extends CustomPainter {
   double offset;
 
   // Container width
-  // Uses for vievport calculations
+  // Unscaled painter width, note that size.width is scaled to be scrollable
   double cWidth;
 
-  GraphPainter(this.dataSet, this.scale, this.offset, this.cWidth, this.start, this.end);
+  double pixelRatio;
+
+  GraphPainter(this.dataSet, this.scale, this.offset, this.cWidth, this.pixelRatio, this.start, this.end);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -201,6 +240,7 @@ class GraphPainter extends CustomPainter {
     int timeDiff = last - first;
     int viewPortTimeStampStart = (last - timeDiff * (offset / size.width)).toInt();
     int viewPortTimeStampEnd = (last - timeDiff * ((offset + cWidth) / size.width)).toInt();
+    double viewPortRasterWidth = cWidth * pixelRatio;
 
     // Calc percent of canvas height by point ping
     double hCalc(num p) {
@@ -218,15 +258,28 @@ class GraphPainter extends CustomPainter {
     Path pingLine = Path();
     Path times = Path();
 
-    for (var i = 0; i < 5; i++) {
-      TextSpan span = TextSpan(style: TextStyle(color: Color(0xffF5F5F5), fontSize: 6, fontWeight: FontWeight.w200), text: '${i * 200}');
-      TextPainter tp = TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+    for (var i = 0; i < 6; i++) {
+      TextSpan span = TextSpan(
+        style: TextStyle(
+          color: Color(0xffF5F5F5),
+          fontSize: 6,
+          fontWeight: FontWeight.w200,
+          height: 1,
+          shadows: const [
+            Shadow(blurRadius: 2, color: Colors.black),
+            Shadow(blurRadius: 8, color: Colors.black),
+          ],
+        ),
+        text: '${i * 200}',
+      );
+      TextPainter tp = TextPainter(text: span, textAlign: TextAlign.center, textDirection: TextDirection.ltr);
 
       tp.layout();
       final twidth = tp.size.width;
+      final theight = tp.size.height;
 
-      tp.paint(canvas, Offset(offset, hCalc(i * 200)));
-      tp.paint(canvas, Offset((offset + cWidth) - twidth, hCalc(i * 200)));
+      tp.paint(canvas, Offset(offset, hCalc(i * 200) + 16 + theight / 2));
+      tp.paint(canvas, Offset((offset + cWidth) - twidth, hCalc(i * 200) + 16 + theight / 2));
     }
 
     for (double i = 0; i < 0.99; i += (1 / (scale.floor() * 10))) {
@@ -265,11 +318,10 @@ class GraphPainter extends CustomPainter {
       count++;
     }
 
-    // Set opacity lowest by increasing number of points
-    // Its provide stacking on large datasets
+    // Provide stacking on many points per pixel,
+    // so it can be recognizes as gradient of intensity rather then mess of lines
     double opacityByCount() {
-      double intensityFactor = (1 / (count / cWidth)).clamp(0, 1);
-      // return intensityFactor;
+      double intensityFactor = (1 / (count / viewPortRasterWidth)).clamp(0, 1);
       double expo = sqrt(intensityFactor).toDouble();
       return expo;
     }
@@ -296,3 +348,38 @@ class GraphPainter extends CustomPainter {
   @override
   bool shouldRebuildSemantics(GraphPainter oldDelegate) => true;
 }
+
+List<DropdownMenuItem<Duration>> periodDropdownList = [
+  DropdownMenuItem(
+    value: Duration(minutes: 5),
+    child: Text('5 mins'),
+  ),
+  DropdownMenuItem(
+    value: Duration(minutes: 30),
+    child: Text('30 mins'),
+  ),
+  DropdownMenuItem(
+    value: Duration(hours: 3),
+    child: Text('3 Hours'),
+  ),
+  DropdownMenuItem(
+    value: Duration(hours: 6),
+    child: Text('6 Hours'),
+  ),
+  DropdownMenuItem(
+    value: Duration(hours: 12),
+    child: Text('12 Hours'),
+  ),
+  DropdownMenuItem(
+    value: Duration(days: 1),
+    child: Text('1 day'),
+  ),
+  DropdownMenuItem(
+    value: Duration(days: 3),
+    child: Text('3 Days'),
+  ),
+  DropdownMenuItem(
+    value: Duration(days: 7),
+    child: Text('Week'),
+  ),
+];

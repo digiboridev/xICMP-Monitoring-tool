@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:xicmpmt/core/app_logger.dart';
 import 'package:xicmpmt/data/drift/tables/stats.dart';
+
 part 'db.g.dart';
 
 @DriftDatabase(tables: [HostsTable, PingTable], daos: [StatsDao])
@@ -20,7 +21,7 @@ class DB extends _$DB {
       });
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {

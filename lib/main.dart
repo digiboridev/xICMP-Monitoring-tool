@@ -1,3 +1,4 @@
+// ignore_for_file: unused_import
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -5,7 +6,7 @@ import 'package:xicmpmt/core/app_logger.dart';
 import 'package:xicmpmt/screens/main_screen.dart';
 
 void main() {
-  debugRepaintRainbowEnabled = true;
+  // debugRepaintRainbowEnabled = true;
   AppLogger.stream.listen((LogEntity l) {
     // Setup local log
     log(l.msg, time: l.time, error: l.error, stackTrace: l.stack, name: l.name, level: l.level.index);
