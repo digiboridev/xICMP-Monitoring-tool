@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.servexpert" "\0"
+            VALUE "CompanyName", "com.digiboridev" "\0"
             VALUE "FileDescription", "xicmpmt" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "xicmpmt" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 com.servexpert. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2023 com.digiboridev. All rights reserved." "\0"
             VALUE "OriginalFilename", "xicmpmt.exe" "\0"
             VALUE "ProductName", "xicmpmt" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

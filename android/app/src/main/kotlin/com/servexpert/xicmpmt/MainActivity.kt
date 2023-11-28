@@ -1,4 +1,4 @@
-package com.servexpert.xicmpmt
+package com.digiboridev.xicmpmt
 
 import io.flutter.embedding.android.FlutterActivity
 

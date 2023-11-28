@@ -1,3 +1,4 @@
+// ignore_for_file: file_names
 import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -111,10 +112,10 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                           // Adjust offset
                           final newOffset = prevOffset * details.scale + details.focalPoint.dx * (details.scale - 1);
                           // Jump to offset proportionaly to scale
-                          // if (scale > 1.0) {
-                          //   scr.jumpTo(offset);
-                          //   offset = newOffset;
-                          // }
+                          if (scale > 1.0) {
+                            scr.jumpTo(newOffset);
+                            offset = newOffset;
+                          }
                         });
                       },
                       onScaleEnd: (details) => loadData(),
