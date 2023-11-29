@@ -35,8 +35,6 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   double prevscale = 1.0;
   double prevOffset = 0;
 
-  // double prevMaxScale = 0;
-
   @override
   void initState() {
     super.initState();
