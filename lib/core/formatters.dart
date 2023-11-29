@@ -13,7 +13,10 @@ extension FormatDate on DateTime {
 
   String get ymdhms => formatter.format(this);
 
+  String get numhm => '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   String get numhms => '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:${second.toString().padLeft(2, '0')}';
+  String get numdmhm =>
+      '${day.toString().padLeft(2, '0')}.${month.toString().padLeft(2, '0')} ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   String get numymd => '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
 }
 

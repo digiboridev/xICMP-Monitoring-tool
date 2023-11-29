@@ -1,6 +1,9 @@
 // ignore_for_file: file_names
+import 'dart:math';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:xicmpmt/core/formatters.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/ping.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
@@ -32,7 +35,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   double prevscale = 1.0;
   double prevOffset = 0;
 
-  double prevMaxScale = 0;
+  // double prevMaxScale = 0;
 
   @override
   void initState() {
@@ -49,29 +52,23 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     });
   }
 
-  loadData({bool force = false}) async {
+  loadData() async {
     final rasterWidth = MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio;
-    if (force) {
-      final now = DateTime.now();
-      from = now.subtract(selectedPeriod);
-      to = now;
+    print('Raster width: $rasterWidth');
 
-      final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 10 * scale).toInt());
-      if (!mounted) return;
+    final now = DateTime.now();
+    from = now.subtract(selectedPeriod);
+    to = now;
 
-      print('loaded ${newData.length} points for $scale scale, forced');
-      data = newData;
-      setState(() => {});
-    } else {
-      if (scale < prevMaxScale) return;
-      final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 10 * scale).toInt());
-      if (!mounted) return;
+    data.clear();
+    setState(() {});
 
-      print('loaded ${newData.length} points for $scale scale');
-      prevMaxScale = scale;
-      data = newData;
-      setState(() => {});
-    }
+    final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 10 * 1).toInt());
+    if (!mounted) return;
+
+    print('loaded ${newData.length} points for $scale scale, forced');
+    data = newData;
+    setState(() => {});
   }
 
   @override
@@ -127,7 +124,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                           }
                         });
                       },
-                      onScaleEnd: (details) => loadData(),
+                      // onScaleEnd: (details) => loadData(),
                       behavior: HitTestBehavior.translucent,
                       child: Container(),
                     ),
@@ -161,12 +158,8 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                     onChanged: (Duration? newValue) {
                       if (newValue == null) return;
                       setState(() {
-                        final now = DateTime.now();
                         selectedPeriod = newValue;
-                        from = now.subtract(selectedPeriod);
-                        to = now;
                         scale = 1.0;
-                        prevMaxScale = 0;
                         offset = 0;
                         scr.jumpTo(0);
                         loadData();
@@ -179,9 +172,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {
-                    loadData(force: true);
-                  },
+                  onPressed: () => loadData(),
                   icon: const Icon(Icons.refresh, size: 20),
                 ),
                 const Spacer(),
@@ -215,7 +206,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                     if (scale == 1.0) offset = 0;
                     scr.jumpTo(offset);
                     setState(() {});
-                    loadData();
+                    // loadData();
                   },
                   icon: const Icon(Icons.zoom_in, size: 20),
                 ),
@@ -227,7 +218,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                     if (scale == 1.0) offset = 0;
                     scr.jumpTo(offset);
                     setState(() {});
-                    loadData();
+                    // loadData();
                   },
                   icon: const Icon(Icons.zoom_out, size: 20),
                 ),
@@ -250,55 +241,144 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 
 class GraphPainter extends CustomPainter {
   final Iterable<Ping> dataSet;
+
+  /// Start time of unscaled graph
   final DateTime start;
+
+  /// End time of unscaled graph
   final DateTime end;
 
-  // Widget width scale
-  double scale;
+  /// View scale
+  final double scale;
 
-  // Scroll controller or scrollview
-  // Uses for position calculations
-  double offset;
+  /// View offset
+  final double offset;
 
-  // Container width
-  // Unscaled painter width, note that size.width is scaled to be scrollable
-  double cWidth;
+  /// Container width
+  /// Unscaled painter width, note that size.width is scaled to be scrollable
+  final double cWidth;
 
-  double pixelRatio;
+  /// Device pixel ratio
+  final double pixelRatio;
 
-  GraphPainter(this.dataSet, this.scale, this.offset, this.cWidth, this.pixelRatio, this.start, this.end);
+  /// Maximum latency value, to limit graph height
+  final int maxValue;
+
+  GraphPainter(this.dataSet, this.scale, this.offset, this.cWidth, this.pixelRatio, this.start, this.end, {this.maxValue = 1000});
+
+  static final Map<int, double> _heightCalcPool = {};
+  // static final Map<String, List<Offset>> _dLinePool = {};
 
   @override
   void paint(Canvas canvas, Size size) {
     // debug
     final stopwatch = Stopwatch()..start();
 
-    // Main time values
-    // Needs for scaling and positioning point on canvas
     int first = start.millisecondsSinceEpoch;
     int last = end.millisecondsSinceEpoch;
     int timeDiff = last - first;
-    int viewPortTimeStampStart = (last - timeDiff * (offset / size.width)).toInt();
-    int viewPortTimeStampEnd = (last - timeDiff * ((offset + cWidth) / size.width)).toInt();
+
+    double viewPortXStart = offset;
+    double viewPortXEnd = offset + cWidth;
+
+    int viewPortTimeStampStart = (last - timeDiff * (viewPortXStart / size.width)).toInt();
+    int viewPortTimeStampEnd = (last - timeDiff * (viewPortXEnd / size.width)).toInt();
+
+    double viewPortStartPercent = viewPortXStart / size.width;
+    double viewPortEndPercent = viewPortXEnd / size.width;
+
     double viewPortRasterWidth = cWidth * pixelRatio;
 
-    // Calc percent of canvas height by point ping
-    double hCalc(num p) {
-      double h = size.height - 32;
-      return (h / 1000 * (1000 - p));
+    // Calc canvas vertical position by value
+    // 32 is top + bottom padding of dataset to avoid matrix scale
+    double hCalcFunc(num value) {
+      // Linear
+      // double h = size.height - 32;
+      // return (h / maxValue * (maxValue - value));
+
+      // Exponential
+      double scale = (value / maxValue).clamp(0, 1);
+      scale = sqrt(scale);
+      final invert = 1 - scale;
+      return ((size.height - 32) * invert);
     }
 
-    // Calc percent of canvas width by point time
+    // Wrap hCalcFunc to avoid recalculating on every frame
+    // by caching results in a pool
+    // Real distinc values is about 200 for 20000 points
+    double hCalc(int v) => _heightCalcPool.putIfAbsent(v, () => hCalcFunc(v));
+
+    // Calc canvas horizontal position by timestamp
     double wCalc(num time) {
-      double timeDiffP = ((last - time) / timeDiff);
+      double timeDiffP = (last - time) / timeDiff;
       return size.width * timeDiffP;
     }
 
-    // Init pathes
-    Path pingLine = Path();
-    Path times = Path();
+    //
+    // Dataset drawing
+    //
 
-    for (var i = 0; i < 6; i++) {
+    Path dpath = Path();
+
+    // Count of lines that will be drawn
+    int viewPortCount = 0;
+
+    List<Offset> dLine(int t, int v) {
+      double x = wCalc(t);
+      double ylow = size.height - 16;
+      double yhigh = hCalc(v) + 16;
+
+      Offset pointLow = Offset(x, ylow);
+      Offset pointHigh = Offset(x, yhigh);
+
+      return [pointLow, pointHigh];
+    }
+
+    // List<Offset> dLine(int t, int v) => _dLinePool.putIfAbsent('$t$v', () => dLineFunc(t, v));
+
+    for (var i = 0; i < dataSet.length; i++) {
+      final p = dataSet.elementAt(i);
+      final timeStamp = p.time.millisecondsSinceEpoch;
+      final value = p.latency;
+      if (timeStamp > viewPortTimeStampStart || timeStamp < viewPortTimeStampEnd) continue;
+
+      dpath.addPolygon(dLine(timeStamp, value), false);
+      viewPortCount++;
+    }
+
+    // Provide stacking on many points per pixel,
+    // so it can be recognizes as gradient of intensity rather then mess of lines
+    double opacityByCount() {
+      double intensityFactor = (viewPortRasterWidth / viewPortCount).clamp(0, 1);
+      // double expo = sqrt(intensityFactor).toDouble();
+      return intensityFactor;
+    }
+
+    canvas.drawPath(
+      dpath,
+      Paint()
+        // ..color = Color(0xffFAF338).withOpacity(opacityByCount())
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.8, 1],
+          colors: [
+            Colors.yellowAccent.withOpacity(opacityByCount()),
+            Colors.yellowAccent.withOpacity(0),
+          ],
+        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+        ..style = PaintingStyle.stroke,
+    );
+
+    //
+    // Vertical grid with values drawing
+    //
+
+    Path vpath = Path();
+
+    final vas = maxValue ~/ 10;
+
+    for (var i = 0; i < 11; i++) {
       TextSpan span = TextSpan(
         style: TextStyle(
           color: Color(0xffF5F5F5),
@@ -306,11 +386,11 @@ class GraphPainter extends CustomPainter {
           fontWeight: FontWeight.w200,
           height: 1,
           shadows: const [
-            Shadow(blurRadius: 2, color: Colors.black),
-            Shadow(blurRadius: 8, color: Colors.black),
+            Shadow(blurRadius: 2, color: Colors.black54),
+            Shadow(blurRadius: 8, color: Colors.black54),
           ],
         ),
-        text: '${i * 200}',
+        text: '${i * vas}',
       );
       TextPainter tp = TextPainter(text: span, textAlign: TextAlign.center, textDirection: TextDirection.ltr);
 
@@ -318,73 +398,68 @@ class GraphPainter extends CustomPainter {
       final twidth = tp.size.width;
       final theight = tp.size.height;
 
-      tp.paint(canvas, Offset(offset, hCalc(i * 200) + 16 + theight / 2));
-      tp.paint(canvas, Offset((offset + cWidth) - twidth, hCalc(i * 200) + 16 + theight / 2));
-    }
+      final y = hCalc(i * vas) + 16;
+      final texty = y - theight / 2;
 
-    for (double i = 0; i < 0.99; i += (1 / (scale.floor() * 10))) {
-      // Cut other optimization
-      if ((offset) / size.width < i && (offset + cWidth) / size.width > i) {
-        // Calc time by percent of with
-        double timeNum = last - timeDiff * i;
-        DateTime time = DateTime.fromMillisecondsSinceEpoch(timeNum.toInt());
+      // Draw data mesh lines
+      vpath.moveTo(viewPortXStart, y);
+      vpath.lineTo(viewPortXEnd, y);
 
-        // Draw text with time
-        TextSpan span = TextSpan(style: TextStyle(color: Color(0xffF5F5F5), fontSize: 10, fontWeight: FontWeight.w200), text: '${time.hour}:${time.minute}');
-        TextPainter tp = TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
-        tp.layout();
-        final twidth = tp.size.width;
-        final theight = tp.size.height;
-        tp.paint(canvas, Offset(size.width * i, size.height - theight));
-
-        // Draw little points that uses as scale points
-        times.moveTo(size.width * i + twidth / 2, 8);
-        times.lineTo(size.width * i + twidth / 2, 16);
-      }
-    }
-
-    int count = 0;
-
-    for (var i = 0; i < dataSet.length; i++) {
-      final p = dataSet.elementAt(i);
-      final timeStamp = p.time.millisecondsSinceEpoch;
-      if (timeStamp > viewPortTimeStampStart || timeStamp < viewPortTimeStampEnd) continue;
-
-      double time = wCalc(timeStamp);
-      int ping = p.latency;
-
-      pingLine.moveTo((time), size.height - 16);
-      pingLine.lineTo((time), hCalc(ping) + 16);
-      count++;
-    }
-
-    // Provide stacking on many points per pixel,
-    // so it can be recognizes as gradient of intensity rather then mess of lines
-    double opacityByCount() {
-      double intensityFactor = (1 / (count / viewPortRasterWidth)).clamp(0, 1);
-      // double expo = sqrt(intensityFactor).toDouble();
-      return intensityFactor;
+      // Draw data mesh text
+      tp.paint(canvas, Offset(viewPortXStart, texty));
+      tp.paint(canvas, Offset((viewPortXEnd) - twidth, texty));
     }
 
     canvas.drawPath(
-      pingLine,
+      vpath,
       Paint()
-        ..color = Color(0xffFAF338).withOpacity(opacityByCount())
-        // ..strokeWidth = 1
+        ..color = Colors.white10
         ..style = PaintingStyle.stroke,
     );
 
+    //
+    // Horizontal grid with time points drawing
+    //
+
+    Path hpath = Path();
+
+    for (double i = 0; i < 0.99; i += (1 / (scale.floor() * 10))) {
+      if (viewPortStartPercent < i && viewPortEndPercent > i) {
+        double timeNum = last - timeDiff * i;
+        DateTime time = DateTime.fromMillisecondsSinceEpoch(timeNum.toInt());
+
+        TextSpan span = TextSpan(style: TextStyle(color: Color(0xffF5F5F5), fontSize: 10, fontWeight: FontWeight.w200), text: time.numhm);
+        TextPainter tp = TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+        tp.layout();
+
+        final twidth = tp.size.width;
+        final theight = tp.size.height;
+
+        // Draw time text
+        tp.paint(canvas, Offset(size.width * i, size.height - theight));
+
+        // Draw top line over dataset
+        hpath.moveTo(size.width * i + twidth / 2, 0);
+        hpath.lineTo(size.width * i + twidth / 2, 8);
+
+        // Draw bottom line over time text
+        hpath.moveTo(size.width * i + twidth / 2, size.height - 16);
+        hpath.lineTo(size.width * i + twidth / 2, size.height - theight);
+      }
+    }
+
     canvas.drawPath(
-      times,
+      hpath,
       Paint()
-        ..color = Color(0xffF5F5F5)
-        ..strokeWidth = 1
+        ..color = Colors.white70
         ..style = PaintingStyle.stroke,
     );
 
     // debug
     stopwatch.stop();
-    print('GraphPainter $count points in ${stopwatch.elapsedMicroseconds}us');
+    print('GraphPainter $viewPortCount points in ${stopwatch.elapsedMicroseconds}us');
+    print('heightCalcPool: ${_heightCalcPool.length}');
+    // print('dLinePool: ${_dLinePool.length}');
   }
 
   @override

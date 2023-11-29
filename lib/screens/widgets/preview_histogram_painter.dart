@@ -29,7 +29,7 @@ class PreviewHistorgamPainter extends CustomPainter {
 
     double lineHeightExpo(int v) {
       double scale = (v / maxValue).clamp(0, 1);
-      scale = sqrt(scale).toDouble();
+      scale = sqrt(scale);
       final invert = 1 - scale;
       return (size.height * invert);
     }
