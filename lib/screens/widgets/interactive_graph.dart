@@ -340,7 +340,7 @@ class GraphPainter extends CustomPainter {
       final value = p.latency;
       if (timeStamp > viewPortTimeStampStart || timeStamp < viewPortTimeStampEnd) continue;
 
-      dpath.addPolygon(dLine(timeStamp, value), false);
+      dpath.addPolygon(dLine(timeStamp, value), true);
       viewPortCount++;
     }
 
