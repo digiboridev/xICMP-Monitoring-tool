@@ -23,13 +23,7 @@ class _MainScreenState extends State<MainScreen> {
         print('minimized');
         return false;
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Monitoring hosts'),
-        ),
-        endDrawer: AppDrawer(),
-        body: const HostsList(),
-      ),
+      child: Scaffold(endDrawer: AppDrawer(), body: const HostsList()),
     );
   }
 }
@@ -63,28 +57,42 @@ class _HostsListState extends State<HostsList> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16.0),
-      physics: BouncingScrollPhysics(),
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            // TODO toltips
-            SizedBox(width: 8),
-            Text('Act'),
-            SizedBox(width: 16),
-            Expanded(child: Text('Host')),
-            SizedBox(width: 16),
-            Text('Stats'),
-            SizedBox(width: 28),
-            Text('Preview'),
-            SizedBox(width: 42),
-            Text('More'),
-            SizedBox(width: 4),
-          ],
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverAppBar(
+          title: const Text('Monitoring hosts'),
+          floating: true,
+          pinned: false,
+          snap: true,
         ),
-        const Divider(),
+        SliverAppBar(
+          title: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                // TODO toltips
+                SizedBox(width: 8),
+                Text('Act', style: TextStyle(fontSize: 16)),
+                SizedBox(width: 16),
+                Expanded(child: Text('Host', style: TextStyle(fontSize: 16))),
+                SizedBox(width: 16),
+                Text('Stats', style: TextStyle(fontSize: 16)),
+                SizedBox(width: 28),
+                Text('Preview', style: TextStyle(fontSize: 16)),
+                SizedBox(width: 42),
+                Text('More', style: TextStyle(fontSize: 16)),
+                SizedBox(width: 4),
+              ],
+            ),
+          ),
+          floating: false,
+          pinned: true,
+          snap: false,
+          automaticallyImplyLeading: false,
+          actions: const [SizedBox.shrink()],
+        ),
         for (var host in hosts) HostTile(host: host, key: Key(host.adress)),
       ],
     );

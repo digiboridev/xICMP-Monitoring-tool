@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
@@ -41,71 +42,88 @@ class _HostTileState extends State<HostTile> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return MultiSliver(
+      pushPinnedChildren: true,
       children: [
-        RepaintBoundary(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => setState(() => expanded = !expanded),
-            child: Opacity(
-              opacity: widget.host.enabled ? 1 : 0.5,
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(width: 8),
-                  StreamBuilder(
-                    stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
-                    builder: (context, snapshot) => BlinkingCircle(),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(child: Text(widget.host.adress, overflow: TextOverflow.fade, softWrap: false)),
-                  SizedBox(width: 16),
-                  SizedBox(width: 70, child: RecentStats(host: widget.host.adress, size: 150)),
-                  SizedBox(width: 70, height: 24, child: PreviewHistorgam(host: widget.host.adress, size: 150)),
-                  SizedBox(width: 8),
-                  Icon(!expanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up),
-                  SizedBox(height: 32, child: menuButton()),
-                ],
+        SliverAppBar(
+          pinned: true,
+          actions: [menuButton()],
+          automaticallyImplyLeading: false,
+          title: RepaintBoundary(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => setState(() => expanded = !expanded),
+              child: Opacity(
+                opacity: widget.host.enabled ? 1 : 0.5,
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(width: 8),
+                    StreamBuilder(
+                      stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
+                      builder: (context, snapshot) => BlinkingCircle(),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(child: Text(widget.host.adress, style: TextStyle(fontSize: 16), overflow: TextOverflow.fade, softWrap: false)),
+                    SizedBox(width: 16),
+                    SizedBox(width: 70, child: RecentStats(host: widget.host.adress, size: 150)),
+                    SizedBox(width: 70, height: 32, child: PreviewHistorgam(host: widget.host.adress, size: 150)),
+                    SizedBox(width: 8),
+                    Icon(!expanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up),
+                    SizedBox(width: 4),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-        RepaintBoundary(
-          child: AnimatedContainer(
-            height: expanded ? 250 : 0,
-            duration: Duration(milliseconds: 600),
-            curve: expanded ? Curves.bounceOut : Curves.easeOutExpo,
-            child: AnimatedOpacity(
-              duration: Duration(milliseconds: 250),
-              curve: Curves.easeInExpo,
-              opacity: expanded ? 1 : 0,
-              child: OverflowBox(
-                maxHeight: 250,
-                child: expanded ? InteractiveGraph(host: widget.host.adress) : null,
+        SliverToBoxAdapter(
+          child: RepaintBoundary(
+            child: AnimatedContainer(
+              height: expanded ? 250 : 0,
+              duration: Duration(milliseconds: 600),
+              curve: expanded ? Curves.bounceOut : Curves.easeOutExpo,
+              child: AnimatedOpacity(
+                duration: Duration(milliseconds: 250),
+                curve: Curves.easeInExpo,
+                opacity: expanded ? 1 : 0,
+                child: OverflowBox(
+                  maxHeight: 250,
+                  child: expanded
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: InteractiveGraph(host: widget.host.adress),
+                        )
+                      : null,
+                ),
               ),
             ),
           ),
         ),
-        // SizedBox(height: 12),
       ],
     );
   }
 
   Widget menuButton() {
-    return PopupMenuButton(
-      padding: EdgeInsets.zero,
-      icon: Icon(Icons.more_horiz),
-      itemBuilder: (context) => [
-        widget.host.enabled ? PopupMenuItem(value: 'toggle', child: Text('Disable')) : PopupMenuItem(value: 'toggle', child: Text('Enable')),
-        PopupMenuItem(value: 'delete', child: Text('Delete')),
-        PopupMenuItem(value: 'export', child: Text('Export')),
-      ],
-      onSelected: (value) {
-        if (value == 'toggle') toggleRunning();
-        if (value == 'delete') deleteHost(context);
-        // TODO: implement export
-      },
+    return Container(
+      width: 32,
+      height: 32,
+      margin: EdgeInsets.only(right: 16),
+      child: PopupMenuButton(
+        padding: EdgeInsets.zero,
+        icon: Icon(Icons.more_horiz),
+        itemBuilder: (context) => [
+          widget.host.enabled ? PopupMenuItem(value: 'toggle', child: Text('Disable')) : PopupMenuItem(value: 'toggle', child: Text('Enable')),
+          PopupMenuItem(value: 'delete', child: Text('Delete')),
+          PopupMenuItem(value: 'export', child: Text('Export')),
+        ],
+        onSelected: (value) {
+          if (value == 'toggle') toggleRunning();
+          if (value == 'delete') deleteHost(context);
+          // TODO: implement export
+        },
+      ),
     );
   }
 }
