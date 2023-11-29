@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:xicmpmt/core/sl.dart';
@@ -41,35 +41,66 @@ class _AppDrawerState extends State<AppDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: Column(
-        children: [
-          // Container(
-          //   height: 100,
-          //   child: DrawerHeader(child: Center(child: Text('PingStats v 1.0'))),
-          // ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-              children: [
-                TextButton(onPressed: addDialog, child: const Row(children: [Icon(Icons.add), SizedBox(width: 8), Text('Add host')])),
-                SizedBox(height: 8),
-                TextButton(onPressed: enableAll, child: const Row(children: [Icon(Icons.play_arrow), SizedBox(width: 8), Text('Enable all')])),
-                SizedBox(height: 8),
-                TextButton(onPressed: disableAll, child: const Row(children: [Icon(Icons.stop), SizedBox(width: 8), Text('Disable all')])),
-                SizedBox(height: 8),
-                TextButton(onPressed: deleteAll, child: const Row(children: [Icon(Icons.delete_outlined), SizedBox(width: 8), Text('Delete all')])),
-                SizedBox(height: 8),
-                // TODO minimize
-                TextButton(onPressed: () {}, child: const Row(children: [Icon(Icons.minimize), SizedBox(width: 8), Text('Minimize')])),
-                SizedBox(height: 8),
-                TextButton(onPressed: () async => exit(0), child: const Row(children: [Icon(Icons.minimize), SizedBox(width: 8), Text('Close app')])),
-                SizedBox(height: 8),
-              ],
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      child: Drawer(
+        width: 250,
+        backgroundColor: Colors.black.withOpacity(0.25),
+        child: Column(
+          children: [
+            DrawerHeader(child: Center(child: Text('xICMP Monitoring Tool'))),
+            Theme(
+              data: Theme.of(context).copyWith(
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.grey.shade200,
+                  ),
+                ),
+              ),
+              child: Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade800),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextButton(onPressed: addDialog, child: const Row(children: [Icon(Icons.add), SizedBox(width: 8), Text('Add host')])),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade800),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextButton(onPressed: enableAll, child: const Row(children: [Icon(Icons.play_arrow), SizedBox(width: 8), Text('Enable all')])),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade800),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextButton(onPressed: disableAll, child: const Row(children: [Icon(Icons.stop), SizedBox(width: 8), Text('Disable all')])),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade800),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child:
+                          TextButton(onPressed: deleteAll, child: const Row(children: [Icon(Icons.delete_outlined), SizedBox(width: 8), Text('Delete all')])),
+                    ),
+                    SizedBox(height: 8),
+                  ],
+                ),
+              ),
             ),
-          ),
-          // TODO about
-        ],
+            // TODO about
+          ],
+        ),
       ),
     );
   }

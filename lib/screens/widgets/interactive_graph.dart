@@ -1,5 +1,4 @@
 // ignore_for_file: file_names
-import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:xicmpmt/core/sl.dart';
@@ -57,7 +56,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
       from = now.subtract(selectedPeriod);
       to = now;
 
-      final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 5 * scale).toInt());
+      final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 10 * scale).toInt());
       if (!mounted) return;
 
       print('loaded ${newData.length} points for $scale scale, forced');
@@ -91,21 +90,19 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                   clipBehavior: Clip.none,
                   children: [
                     Positioned.fill(
-                      child: RepaintBoundary(
-                        child: SingleChildScrollView(
-                          clipBehavior: Clip.none,
-                          controller: scr,
-                          scrollDirection: Axis.horizontal,
-                          physics: BouncingScrollPhysics(),
-                          dragStartBehavior: DragStartBehavior.down,
-                          child: SizedBox(
-                            // Grow conteiner width depend on scale value
-                            width: width * scale,
-                            child: CustomPaint(
-                              willChange: true,
-                              isComplex: true,
-                              painter: GraphPainter(data, scale, offset, width, MediaQuery.of(context).devicePixelRatio, from, to),
-                            ),
+                      child: SingleChildScrollView(
+                        clipBehavior: Clip.none,
+                        controller: scr,
+                        scrollDirection: Axis.horizontal,
+                        physics: BouncingScrollPhysics(),
+                        dragStartBehavior: DragStartBehavior.down,
+                        child: SizedBox(
+                          // Grow conteiner width depend on scale value
+                          width: width * scale,
+                          child: CustomPaint(
+                            willChange: true,
+                            isComplex: true,
+                            painter: GraphPainter(data, scale, offset, width, MediaQuery.of(context).devicePixelRatio, from, to),
                           ),
                         ),
                       ),
@@ -273,6 +270,9 @@ class GraphPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // debug
+    final stopwatch = Stopwatch()..start();
+
     // Main time values
     // Needs for scaling and positioning point on canvas
     int first = start.millisecondsSinceEpoch;
@@ -381,18 +381,27 @@ class GraphPainter extends CustomPainter {
         ..strokeWidth = 1
         ..style = PaintingStyle.stroke,
     );
+
+    // debug
+    stopwatch.stop();
+    print('GraphPainter $count points in ${stopwatch.elapsedMicroseconds}us');
   }
 
   @override
-  bool shouldRepaint(GraphPainter oldDelegate) => true;
-  @override
-  bool shouldRebuildSemantics(GraphPainter oldDelegate) => true;
+  bool shouldRepaint(GraphPainter oldDelegate) {
+    return oldDelegate.scale != scale ||
+        oldDelegate.offset != offset ||
+        oldDelegate.cWidth != cWidth ||
+        start != oldDelegate.start ||
+        end != oldDelegate.end ||
+        oldDelegate.dataSet != dataSet;
+  }
 }
 
 List<DropdownMenuItem<Duration>> periodDropdownList = [
   DropdownMenuItem(
     value: Duration(minutes: 15),
-    child: Text('15 minutes'),
+    child: Text('15 min'),
   ),
   DropdownMenuItem(
     value: Duration(hours: 1),

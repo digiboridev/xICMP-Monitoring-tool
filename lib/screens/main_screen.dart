@@ -77,7 +77,7 @@ class _HostsListState extends State<HostsList> {
             Expanded(child: Text('Host')),
             SizedBox(width: 16),
             Text('Stats'),
-            SizedBox(width: 24),
+            SizedBox(width: 28),
             Text('Preview'),
             SizedBox(width: 42),
             Text('More'),

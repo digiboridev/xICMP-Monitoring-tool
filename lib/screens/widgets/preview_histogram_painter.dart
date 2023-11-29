@@ -3,11 +3,17 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:xicmpmt/data/models/ping.dart';
 
-class TileGraph extends CustomPainter {
+/// Paints a preview histogram of the recent latency samples
+///
+/// Optimized for performance by
+/// using constant step rather than mapping to time
+/// using known dataset length to iterate over samples only once per frame without length lookup
+/// using a pool of precalculated line heights to avoid recalculating them on every frame
+class PreviewHistorgamPainter extends CustomPainter {
   final Iterable<Ping> samples;
-  final int max;
+  final int maxValue;
   final int length;
-  const TileGraph(this.samples, {this.max = 1000, this.length = 100});
+  const PreviewHistorgamPainter(this.samples, {this.maxValue = 1000, this.length = 100});
 
   static final _linePaint = Paint()..color = Colors.black;
   static final _lossPaint = Paint()..color = Colors.red;
@@ -16,13 +22,13 @@ class TileGraph extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     double lineHeight(int v) {
-      double scale = (v / max).clamp(0, 1);
+      double scale = (v / maxValue).clamp(0, 1);
       final invert = 1 - scale;
       return (size.height * invert);
     }
 
     double lineHeightExpo(int v) {
-      double scale = (v / max).clamp(0, 1);
+      double scale = (v / maxValue).clamp(0, 1);
       scale = sqrt(scale).toDouble();
       final invert = 1 - scale;
       return (size.height * invert);
@@ -33,7 +39,7 @@ class TileGraph extends CustomPainter {
     }
 
     var rect = Offset.zero & Size(size.width, size.height);
-    canvas.drawRect(rect, Paint()..color = Color(0xffFAF338));
+    canvas.drawRect(rect, Paint()..color = Colors.yellowAccent);
 
     final double step = size.width / (length - 1);
 
@@ -58,5 +64,5 @@ class TileGraph extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(TileGraph oldDelegate) => true;
+  bool shouldRepaint(PreviewHistorgamPainter oldDelegate) => true;
 }
