@@ -81,22 +81,13 @@ class _HostTileState extends State<HostTile> {
         SliverToBoxAdapter(
           child: RepaintBoundary(
             child: AnimatedContainer(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               height: expanded ? 250 : 0,
-              duration: Duration(milliseconds: 600),
-              curve: expanded ? Curves.bounceOut : Curves.easeOutExpo,
-              child: AnimatedOpacity(
-                duration: Duration(milliseconds: 250),
-                curve: Curves.easeInExpo,
-                opacity: expanded ? 1 : 0,
-                child: OverflowBox(
-                  maxHeight: 250,
-                  child: expanded
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: InteractiveGraph(host: widget.host.adress),
-                        )
-                      : null,
-                ),
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeOutExpo,
+              child: OverflowBox(
+                maxHeight: 250,
+                child: expanded ? InteractiveGraph(host: widget.host.adress) : null,
               ),
             ),
           ),

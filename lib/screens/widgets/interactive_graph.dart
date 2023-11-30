@@ -61,7 +61,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     data.clear();
     setState(() {});
 
-    final newData = await SL.statsRepository.getPingsForHostPeriodScale(widget.host, from, to, (rasterWidth * 10 * 1).toInt());
+    final newData = await SL.statsRepository.hostPingsPeriodScaled(widget.host, from, to, (rasterWidth * 10 * 1).toInt());
     if (!mounted) return;
 
     print('loaded ${newData.length} points for $scale scale, forced');

@@ -7,31 +7,21 @@ part 'stats.g.dart';
 class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
   StatsDao(super.db);
 
+  @Deprecated('debug only')
+  Future<List<DriftPing>> getAllPings() => select(pingTable).get();
+
+  /// Hosts
   Future addHost(DriftHost host) => into(hostsTable).insert(host, mode: InsertMode.insertOrReplace);
   Future updateHost(DriftHost host) => update(hostsTable).replace(host);
   Future deleteHost(String host) => (delete(hostsTable)..where((t) => t.adress.equals(host))).go();
   Future deleteAllHosts() => delete(hostsTable).go();
   Future<List<DriftHost>> getAllHosts() => select(hostsTable).get();
-  Future<HostStats> hostStats(String host) async {
-    final query = customSelect(
-      'SELECT avg(latency) as avg, min(latency) as min, max(latency) as max, count(*) as count, count(lost) as lostCount FROM ping_table WHERE host = ?',
-      variables: [Variable.withString(host)],
-    );
-    final result = await query.getSingle();
-    double avg = result.read('avg');
-    double min = result.read('min');
-    double max = result.read('max');
-    int count = result.read('count');
-    int lostCount = result.read('lostCount');
-    int lossPercent = lostCount ~/ count * 100;
-    return HostStats(avg.truncate(), min.truncate(), max.truncate(), count, lostCount, lossPercent);
-  }
 
-  Future addPing(DriftPing ping) => into(pingTable).insert(ping, mode: InsertMode.insertOrReplace);
-  @Deprecated('test only')
-  Future<List<DriftPing>> getAllPings() => select(pingTable).get();
-  Future<List<DriftPing>> getPingsForHost(String host) => (select(pingTable)..where((t) => t.host.equals(host))).get();
-  Future<List<DriftPing>> getPingsForHostPeriod(String host, DateTime from, DateTime to) async {
+  /// Pings and stats
+  Future setPing(DriftPing ping) => into(pingTable).insert(ping, mode: InsertMode.insertOrReplace);
+  Future wipeExpiredPings(DateTime before) => (delete(pingTable)..where((t) => t.timestamp.isSmallerThanValue(before.millisecondsSinceEpoch))).go();
+
+  Future<List<DriftPing>> hostPingsPeriod(String host, DateTime from, DateTime to) async {
     final fromStamp = from.millisecondsSinceEpoch;
     final toStamp = to.millisecondsSinceEpoch;
 
@@ -52,7 +42,7 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
     return await mappedQuery.get();
   }
 
-  Future<List<DriftPing>> getPingsForHostPeriodScale(String host, DateTime from, DateTime to, int scale) async {
+  Future<List<DriftPing>> hostPingsPeriodScaled(String host, DateTime from, DateTime to, int scale) async {
     final fromStamp = from.millisecondsSinceEpoch;
     final toStamp = to.millisecondsSinceEpoch;
     final periodMs = (toStamp - fromStamp) ~/ scale;
@@ -63,23 +53,25 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
     );
 
     final mappedQuery = query.map(
-      (row) => DriftPing(
-        host: host,
-        timestamp: row.read('timestamp'),
-        latency: row.read<double>('latency').toInt(),
-        lost: row.read('lost'),
-      ),
+      (row) => DriftPing(host: host, timestamp: row.read('timestamp'), latency: row.read<double>('latency').toInt(), lost: row.read('lost')),
     );
     return await mappedQuery.get();
   }
 
-  Future<List<DriftPing>> getLastPingsForHost(String host, int count) => (select(pingTable)
-        ..orderBy(
-          [(t) => OrderingTerm(expression: t.timestamp, mode: OrderingMode.desc)],
-        )
-        ..where((t) => t.host.equals(host))
-        ..limit(count))
-      .get();
+  Future<HostStats> hostStats(String host) async {
+    final query = customSelect(
+      'SELECT avg(latency) as avg, min(latency) as min, max(latency) as max, count(*) as count, count(lost) as lostCount FROM ping_table WHERE host = ?',
+      variables: [Variable.withString(host)],
+    );
+    final result = await query.getSingle();
+    double avg = result.read('avg');
+    double min = result.read('min');
+    double max = result.read('max');
+    int count = result.read('count');
+    int lostCount = result.read('lostCount');
+    int lossPercent = lostCount ~/ count * 100;
+    return HostStats(avg.truncate(), min.truncate(), max.truncate(), count, lostCount, lossPercent);
+  }
 }
 
 @DataClassName('DriftHost')

@@ -29,6 +29,32 @@ class DB extends _$DB {
       onCreate: (migrator) async {
         AppLogger.debug('drift onCreate');
         await migrator.createAll();
+
+        // Filling default hosts across the world
+
+        // USA
+        migrator.database.customInsert(
+          'INSERT INTO hosts_table (adress, enabled) VALUES (?, ?)',
+          variables: [Variable.withString('8.8.8.8'), Variable.withBool(true)],
+        );
+
+        // China
+        migrator.database.customInsert(
+          'INSERT INTO hosts_table (adress, enabled) VALUES (?, ?)',
+          variables: [Variable.withString('223.6.6.6'), Variable.withBool(true)],
+        );
+
+        // Australia
+        migrator.database.customInsert(
+          'INSERT INTO hosts_table (adress, enabled) VALUES (?, ?)',
+          variables: [Variable.withString('103.86.96.100'), Variable.withBool(true)],
+        );
+
+        // Uganda
+        migrator.database.customInsert(
+          'INSERT INTO hosts_table (adress, enabled) VALUES (?, ?)',
+          variables: [Variable.withString('154.72.202.86'), Variable.withBool(true)],
+        );
       },
       onUpgrade: (migrator, from, to) async {
         AppLogger.debug('drift onUpgrade: $from -> $to');
@@ -38,6 +64,7 @@ class DB extends _$DB {
       },
       beforeOpen: (openingDetails) async {
         AppLogger.debug('drift beforeOpen ${openingDetails.versionNow}');
+
         if (kDebugMode && openingDetails.hadUpgrade) {
           final m = createMigrator();
           for (final table in allTables) {

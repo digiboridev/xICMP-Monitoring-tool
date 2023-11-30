@@ -1,7 +1,7 @@
 // ignore_for_file: unused_import
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+// import 'package:flutter/rendering.dart';
 import 'package:xicmpmt/core/app_logger.dart';
 import 'package:xicmpmt/screens/main_screen.dart';
 
@@ -43,4 +43,4 @@ class PingStatsApp extends StatelessWidget {
 }
 
 
- // settings: ping interval, foreground, wake lock
+ // settings: ping interval, foreground, wake lock, raster scale, ping timeout, recent size

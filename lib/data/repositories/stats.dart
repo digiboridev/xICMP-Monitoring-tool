@@ -39,20 +39,21 @@ abstract class StatsRepository {
   Future disableAllHosts();
   Future enableAllHosts();
   Future<List<Host>> getAllHosts();
-  Future<HostStats> hostStats(String host);
 
-  Future addPing(Ping ping);
-  Future<List<Ping>> getAllPings();
-  Future<List<Ping>> getPingsForHost(String host);
-  Future<List<Ping>> getPingsForHostPeriod(String host, DateTime from, DateTime to);
-  Future<List<Ping>> getPingsForHostPeriodScale(String host, DateTime from, DateTime to, int scale);
-  Future<List<Ping>> getLastPingsForHost(String host, int count);
+  Future setPing(Ping ping);
+  Future<List<Ping>> hostPingsPeriod(String host, DateTime from, DateTime to);
+  Future<List<Ping>> hostPingsPeriodScaled(String host, DateTime from, DateTime to, int scale);
+  Future<HostStats> hostStats(String host);
 }
 
 class StatsRepositoryDriftImpl implements StatsRepository {
   final StatsDao _dao;
   final _eventBus = StreamController<StatsEvent>.broadcast();
-  StatsRepositoryDriftImpl(this._dao);
+
+  StatsRepositoryDriftImpl(this._dao) {
+    // Schedule periodic wipe of expired pings
+    Timer.periodic(const Duration(hours: 1), (timer) => _dao.wipeExpiredPings(DateTime.now().subtract(const Duration(days: 7))));
+  }
 
   @override
   Stream<StatsEvent> get eventBus => _eventBus.stream;
@@ -103,38 +104,23 @@ class StatsRepositoryDriftImpl implements StatsRepository {
   }
 
   @override
-  Future<HostStats> hostStats(String host) async {
-    return _dao.hostStats(host);
-  }
-
-  @override
-  Future addPing(Ping ping) async {
-    await _dao.addPing(StatsMapper.fromPing(ping));
+  Future setPing(Ping ping) async {
+    await _dao.setPing(StatsMapper.fromPing(ping));
     _eventBus.add(PingAdded(ping));
   }
 
   @override
-  Future<List<Ping>> getAllPings() async {
-    return _dao.getAllPings().then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
+  Future<List<Ping>> hostPingsPeriod(String host, DateTime from, DateTime to) async {
+    return _dao.hostPingsPeriod(host, from, to).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
   }
 
   @override
-  Future<List<Ping>> getPingsForHost(String host) async {
-    return _dao.getPingsForHost(host).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
+  Future<List<Ping>> hostPingsPeriodScaled(String host, DateTime from, DateTime to, int scale) async {
+    return _dao.hostPingsPeriodScaled(host, from, to, scale).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
   }
 
   @override
-  Future<List<Ping>> getPingsForHostPeriod(String host, DateTime from, DateTime to) async {
-    return _dao.getPingsForHostPeriod(host, from, to).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
-  }
-
-  @override
-  Future<List<Ping>> getPingsForHostPeriodScale(String host, DateTime from, DateTime to, int scale) async {
-    return _dao.getPingsForHostPeriodScale(host, from, to, scale).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
-  }
-
-  @override
-  Future<List<Ping>> getLastPingsForHost(String host, int count) async {
-    return _dao.getLastPingsForHost(host, count).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
+  Future<HostStats> hostStats(String host) async {
+    return _dao.hostStats(host);
   }
 }
