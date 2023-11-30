@@ -1,20 +1,15 @@
-class Host {
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:equatable/equatable.dart';
+
+class Host with EquatableMixin {
   final String adress;
   final bool enabled;
-
   Host({required this.adress, required this.enabled});
 
   Host copyWith({String? adress, bool? enabled}) => Host(adress: adress ?? this.adress, enabled: enabled ?? this.enabled);
 
   @override
-  bool operator ==(covariant Host other) {
-    if (identical(this, other)) return true;
-
-    return other.adress == adress && other.enabled == enabled;
-  }
-
-  @override
-  int get hashCode => adress.hashCode ^ enabled.hashCode;
+  List<Object> get props => [adress, enabled];
 
   @override
   String toString() => 'Host(adress: $adress, enabled: $enabled)';

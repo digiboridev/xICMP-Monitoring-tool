@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-class HostStats {
+class HostStats with EquatableMixin {
   final int avg;
   final int min;
   final int max;
@@ -10,15 +12,8 @@ class HostStats {
   HostStats(this.avg, this.min, this.max, this.count, this.lostCount, this.lossPercent);
 
   @override
-  bool operator ==(covariant HostStats other) {
-    if (identical(this, other)) return true;
-
-    return other.avg == avg && other.min == min && other.max == max && other.count == count && other.lostCount == lostCount && other.lossPercent == lossPercent;
-  }
-
-  @override
-  int get hashCode {
-    return avg.hashCode ^ min.hashCode ^ max.hashCode ^ count.hashCode ^ lostCount.hashCode ^ lossPercent.hashCode;
+  List<Object> get props {
+    return [avg, min, max, count, lostCount, lossPercent];
   }
 
   @override
