@@ -19,7 +19,7 @@ class _HostAdressDialogState extends State<HostAdressDialog> {
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
       child: AlertDialog(
-        title: const Text('Network unit host form'),
+        title: const Text('Host address'),
         content: Form(key: formKey, child: hostField()),
         actions: [
           Opacity(
@@ -42,7 +42,7 @@ class _HostAdressDialogState extends State<HostAdressDialog> {
       // inputFormatters: [AppFormatters.ipFormatter],
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter some text';
+          return 'Input can\'t be empty';
         }
         // if (AppValidators.isValidIp(value) == false) {
         //   return 'Please enter a valid ip adress';

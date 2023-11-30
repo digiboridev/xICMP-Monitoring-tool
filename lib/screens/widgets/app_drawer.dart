@@ -6,6 +6,8 @@ import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
 import 'package:xicmpmt/screens/widgets/host_adress_dialog.dart';
+import 'package:xicmpmt/utils/fillable_scrollable_wrapper.dart';
+import 'package:xicmpmt/utils/min_spacer.dart';
 
 class AppDrawer extends StatefulWidget {
   const AppDrawer({super.key});
@@ -43,63 +45,45 @@ class _AppDrawerState extends State<AppDrawer> {
   Widget build(BuildContext context) {
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-      child: Drawer(
-        width: 250,
-        backgroundColor: Colors.black.withOpacity(0.25),
-        child: Column(
-          children: [
-            DrawerHeader(child: Center(child: Text('xICMP Monitoring Tool'))),
-            Theme(
-              data: Theme.of(context).copyWith(
-                textButtonTheme: TextButtonThemeData(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.grey.shade200,
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.blueGrey.shade900,
+              backgroundColor: Colors.cyan.shade100,
+            ),
+          ),
+        ),
+        child: Drawer(
+          width: 250,
+          backgroundColor: Theme.of(context).colorScheme.background.withOpacity(0.8),
+          child: FillableScrollableWrapper(
+            child: Column(
+              children: [
+                DrawerHeader(child: Center(child: Text('xICMP Monitoring Tool'))),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        TextButton(onPressed: addDialog, child: const Row(children: [Icon(Icons.add), SizedBox(width: 8), Text('Add host')])),
+                        SizedBox(height: 16),
+                        TextButton(onPressed: enableAll, child: const Row(children: [Icon(Icons.play_arrow), SizedBox(width: 8), Text('Enable all')])),
+                        SizedBox(height: 16),
+                        TextButton(onPressed: disableAll, child: const Row(children: [Icon(Icons.stop), SizedBox(width: 8), Text('Disable all')])),
+                        SizedBox(height: 16),
+                        TextButton(onPressed: deleteAll, child: const Row(children: [Icon(Icons.delete_outlined), SizedBox(width: 8), Text('Delete all')])),
+                        // Spacer(),
+                        MinSpacer(minHeight: 32),
+                        TextButton(onPressed: () {}, child: const Row(children: [Icon(Icons.workspace_premium_outlined), SizedBox(width: 8), Text('About')])),
+                        // TODO about
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              child: Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade800),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: TextButton(onPressed: addDialog, child: const Row(children: [Icon(Icons.add), SizedBox(width: 8), Text('Add host')])),
-                    ),
-                    SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade800),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: TextButton(onPressed: enableAll, child: const Row(children: [Icon(Icons.play_arrow), SizedBox(width: 8), Text('Enable all')])),
-                    ),
-                    SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade800),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: TextButton(onPressed: disableAll, child: const Row(children: [Icon(Icons.stop), SizedBox(width: 8), Text('Disable all')])),
-                    ),
-                    SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade800),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child:
-                          TextButton(onPressed: deleteAll, child: const Row(children: [Icon(Icons.delete_outlined), SizedBox(width: 8), Text('Delete all')])),
-                    ),
-                    SizedBox(height: 8),
-                  ],
-                ),
-              ),
+              ],
             ),
-            // TODO about
-          ],
+          ),
         ),
       ),
     );

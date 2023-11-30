@@ -67,25 +67,21 @@ class _HostsListState extends State<HostsList> {
           snap: true,
         ),
         SliverAppBar(
-          title: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                // TODO toltips
-                SizedBox(width: 8),
-                Text('Act', style: TextStyle(fontSize: 16)),
-                SizedBox(width: 16),
-                Expanded(child: Text('Host', style: TextStyle(fontSize: 16))),
-                SizedBox(width: 16),
-                Text('Stats', style: TextStyle(fontSize: 16)),
-                SizedBox(width: 28),
-                Text('Preview', style: TextStyle(fontSize: 16)),
-                SizedBox(width: 42),
-                Text('More', style: TextStyle(fontSize: 16)),
-                SizedBox(width: 4),
-              ],
-            ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              // TODO toltips
+              SizedBox(width: 8),
+              Text('Act', style: TextStyle(fontSize: 16)),
+              SizedBox(width: 16),
+              Expanded(child: Text('Host', style: TextStyle(fontSize: 16))),
+              SizedBox(width: 16),
+              Text('Stats', style: TextStyle(fontSize: 16)),
+              SizedBox(width: 28),
+              Text('Preview', style: TextStyle(fontSize: 16)),
+              SizedBox(width: 50),
+              Text('More', style: TextStyle(fontSize: 16)),
+            ],
           ),
           floating: false,
           pinned: true,

@@ -22,17 +22,25 @@ class PingStatsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ColorScheme.fromSeed(
+      seedColor: Color(0xff101216),
+      brightness: Brightness.dark,
+      surfaceTint: Colors.black,
+      primary: Colors.white,
+      secondary: Colors.yellowAccent,
+      // background: Color(0xff101216),
+    );
+
     return MaterialApp(
       title: 'xICMP Monitoring Tool',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.cyan,
-          background: Color(0xff101216),
-          brightness: Brightness.dark,
-        ),
+        colorScheme: theme,
       ),
       home: const MainScreen(),
     );
   }
 }
+
+
+ // settings: ping interval, foreground, wake lock

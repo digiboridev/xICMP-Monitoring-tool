@@ -20,6 +20,7 @@ class _RecentStatsState extends State<RecentStats> {
   int get sum => samplesQueue.fold(0, (sum, ping) => sum + ping.latency);
   int get count => samplesQueue.length;
   int get lossCount => samplesQueue.where((ping) => ping.lost).length;
+  int get min => samplesQueue.fold(1000, (min, ping) => ping.latency < min ? ping.latency : min);
   double get avg => sum / count;
   double get lossPercent => lossCount / count * 100;
 
@@ -49,14 +50,14 @@ class _RecentStatsState extends State<RecentStats> {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle st = TextStyle(fontSize: 9, fontWeight: FontWeight.w400, height: 1);
+    TextStyle st = TextStyle(fontSize: 9, fontWeight: FontWeight.w400);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text('MIN: ${min.clamp(0, 1000).toStringAsFixed(1)} ms', style: st),
         Text('AVG: ${avg.clamp(0, 1000).toStringAsFixed(1)} ms', style: st),
-        SizedBox(height: 3),
-        Text('LOS: ${lossPercent.clamp(0, 100).toStringAsFixed(2)} % ', style: st),
+        Text('LOS: ${lossPercent.clamp(0, 100).toStringAsFixed(2)} %', style: st),
       ],
     );
   }
