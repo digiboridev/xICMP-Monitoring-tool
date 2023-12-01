@@ -11,6 +11,7 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
   Future<List<DriftPing>> getAllPings() => select(pingTable).get();
 
   /// Hosts
+
   Future addHost(DriftHost host) => into(hostsTable).insert(host, mode: InsertMode.insertOrReplace);
   Future updateHost(DriftHost host) => update(hostsTable).replace(host);
   Future deleteHost(String host) => (delete(hostsTable)..where((t) => t.adress.equals(host))).go();
@@ -18,8 +19,21 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
   Future<List<DriftHost>> getAllHosts() => select(hostsTable).get();
 
   /// Pings and stats
-  Future setPing(DriftPing ping) => into(pingTable).insert(ping, mode: InsertMode.insertOrReplace);
+
   Future wipeExpiredPings(DateTime before) => (delete(pingTable)..where((t) => t.timestamp.isSmallerThanValue(before.millisecondsSinceEpoch))).go();
+  // Future setPing(DriftPing ping) => into(pingTable).insert(ping, mode: InsertMode.insertOrReplace);
+
+  final lastMap = <String, DriftPing>{};
+  Future setPing(DriftPing ping, {bool distinctLast = true}) async {
+    // Filter out unchanged latency
+    if (distinctLast) {
+      DriftPing? lastPing = lastMap[ping.host];
+      if (lastPing != null && lastPing.latency == ping.latency) return;
+      lastMap[ping.host] = ping;
+    }
+
+    await into(pingTable).insert(ping, mode: InsertMode.insertOrReplace);
+  }
 
   Future<List<DriftPing>> hostPingsPeriod(String host, DateTime from, DateTime to) async {
     final fromStamp = from.millisecondsSinceEpoch;
@@ -47,8 +61,11 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
     final toStamp = to.millisecondsSinceEpoch;
     final periodMs = (toStamp - fromStamp) ~/ scale;
 
+    // If period is too small, no need to scale
+    if (periodMs < 100) return hostPingsPeriod(host, from, to);
+
     final query = customSelect(
-      'SELECT round(avg(latency)) as latency, timestamp, lost FROM ping_table WHERE host = ? AND timestamp BETWEEN ? AND ? GROUP BY timestamp / ?',
+      'SELECT avg(latency) as latency, timestamp, lost FROM ping_table WHERE host = ? AND timestamp BETWEEN ? AND ? GROUP BY timestamp / ?',
       variables: [Variable.withString(host), Variable.withInt(fromStamp), Variable.withInt(toStamp), Variable.withInt(periodMs)],
     );
 

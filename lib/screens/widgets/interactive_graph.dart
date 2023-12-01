@@ -479,7 +479,7 @@ class GraphPainter extends CustomPainter {
         oldDelegate.cWidth != cWidth ||
         start != oldDelegate.start ||
         end != oldDelegate.end ||
-        listEquals(dataSet, oldDelegate.dataSet);
+        !listEquals(dataSet, oldDelegate.dataSet);
   }
 }
 
