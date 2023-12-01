@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
+import 'package:xicmpmt/core/app_logger.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
@@ -27,13 +28,13 @@ class _HostTileState extends State<HostTile> {
   void toggleRunning() {
     statsRepository.updateHost(widget.host.copyWith(enabled: !widget.host.enabled));
     monitoringService.upsertMonitoring();
-    print('toggle running');
+    AppLogger.debug('toggle running ${widget.host.adress}', name: 'HostTile');
   }
 
   void deleteHost(BuildContext context) {
     statsRepository.deleteHost(widget.host.adress);
     monitoringService.upsertMonitoring();
-    print('delete host');
+    AppLogger.debug('delete host ${widget.host.adress}', name: 'HostTile');
   }
 
   @override

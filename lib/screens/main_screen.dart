@@ -18,9 +18,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // MoveToBackground.moveTaskToBack();
         // TODO: implement onWillPop
-        print('minimized');
         return false;
       },
       child: Scaffold(endDrawer: AppDrawer(), body: const HostsList()),

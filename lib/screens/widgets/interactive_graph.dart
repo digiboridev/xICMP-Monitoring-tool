@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:quiver/collection.dart';
+import 'package:xicmpmt/core/app_logger.dart';
 import 'package:xicmpmt/core/formatters.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/ping.dart';
@@ -63,7 +64,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 
   loadData() async {
     final rasterWidth = MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio;
-    print('Raster width: $rasterWidth');
+    AppLogger.debug('Raster width: $rasterWidth', name: 'InteractiveGraph');
 
     final now = DateTime.now();
     from = now.subtract(selectedPeriod);
@@ -72,7 +73,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     final newData = await SL.statsRepository.hostPingsPeriodScaled(widget.host, from, to, (rasterWidth * 10).toInt());
     if (!mounted) return;
 
-    print('loaded ${newData.length} points for $scale scale');
+    AppLogger.debug('loaded ${newData.length} points for $scale scale', name: 'InteractiveGraph');
     data = newData;
     setState(() => {});
   }
@@ -470,9 +471,9 @@ class GraphPainter extends CustomPainter {
 
     // debug
     stopwatch.stop();
-    print('GraphPainter $viewPortCount points in ${stopwatch.elapsedMicroseconds}us');
-    print('heightCalcPool: ${_heightCalcPool.length}');
-    print('dLinePool: ${_dLinePool.length}');
+    AppLogger.debug('GraphPainter $viewPortCount points in ${stopwatch.elapsedMicroseconds}us', name: 'InteractiveGraph');
+    AppLogger.debug('heightCalcPool: ${_heightCalcPool.length}', name: 'InteractiveGraph');
+    AppLogger.debug('dLinePool: ${_dLinePool.length}', name: 'InteractiveGraph');
   }
 
   @override
