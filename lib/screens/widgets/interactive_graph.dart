@@ -48,9 +48,11 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
       // Only if graph is not zoomed, to avoid drift on detailed view
       Timer.periodic(Duration(seconds: 5), (timer) {
         if (!mounted) return timer.cancel();
-        if (scale == 1.0) loadData();
+        if (scale == 1.0 && selectedPeriod.inHours < 1) loadData();
       });
 
+      // Update graph on scroll
+      // Uses by painter to draw only visible part of graph
       scr.addListener(() {
         if (!mounted) return;
         offset = scr.offset;
@@ -165,10 +167,10 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
                     items: periodDropdownList,
                   ),
                 ),
-                IconButton(
-                  onPressed: () => loadData(),
-                  icon: const Icon(Icons.refresh, size: 20),
-                ),
+                // IconButton(
+                //   onPressed: () => loadData(),
+                //   icon: const Icon(Icons.refresh, size: 20),
+                // ),
                 const Spacer(),
                 IconButton(
                   onPressed: () {
