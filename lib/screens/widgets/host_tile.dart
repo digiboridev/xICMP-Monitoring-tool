@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:xicmpmt/core/sl.dart';
@@ -45,39 +46,87 @@ class _HostTileState extends State<HostTile> {
     return MultiSliver(
       pushPinnedChildren: true,
       children: [
-        SliverAppBar(
+        SliverPersistentHeader(
           pinned: true,
-          actions: [menuButton()],
-          automaticallyImplyLeading: false,
-          title: RepaintBoundary(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => setState(() => expanded = !expanded),
-              child: Opacity(
-                opacity: widget.host.enabled ? 1 : 0.5,
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(width: 8),
-                    StreamBuilder(
-                      stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
-                      builder: (context, snapshot) => BlinkingCircle(),
+          floating: false,
+          delegate: _PinnedSliverDelegate(
+            child: RepaintBoundary(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => setState(() => expanded = !expanded),
+                          child: Opacity(
+                            opacity: widget.host.enabled ? 1 : 0.5,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                SizedBox(width: 8),
+                                StreamBuilder(
+                                  stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
+                                  builder: (context, snapshot) => BlinkingCircle(),
+                                ),
+                                SizedBox(width: 16),
+                                Expanded(child: Text(widget.host.adress, style: TextStyle(fontSize: 16), overflow: TextOverflow.fade, softWrap: false)),
+                                SizedBox(width: 16),
+                                SizedBox(width: 70, child: RecentStats(host: widget.host.adress, size: 150)),
+                                SizedBox(width: 70, height: 32, child: PreviewHistorgam(host: widget.host.adress, size: 150)),
+                                SizedBox(width: 4),
+                                Icon(!expanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up),
+                                SizedBox(width: 4),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                    SizedBox(width: 16),
-                    Expanded(child: Text(widget.host.adress, style: TextStyle(fontSize: 16), overflow: TextOverflow.fade, softWrap: false)),
-                    SizedBox(width: 16),
-                    SizedBox(width: 70, child: RecentStats(host: widget.host.adress, size: 150)),
-                    SizedBox(width: 70, height: 32, child: PreviewHistorgam(host: widget.host.adress, size: 150)),
-                    SizedBox(width: 8),
-                    Icon(!expanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up),
-                    SizedBox(width: 4),
-                  ],
-                ),
+                  ),
+                  // SizedBox(width: 8),
+                  menuButton(),
+                ],
               ),
             ),
           ),
         ),
+        // SliverAppBar(
+        //   pinned: true,
+        //   actions: [menuButton()],
+        //   automaticallyImplyLeading: false,
+        //   title: RepaintBoundary(
+        //     child: InkWell(
+        //       borderRadius: BorderRadius.circular(16),
+        //       onTap: () => setState(() => expanded = !expanded),
+        //       child: Opacity(
+        //         opacity: widget.host.enabled ? 1 : 0.5,
+        //         child: Row(
+        //           mainAxisSize: MainAxisSize.max,
+        //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //           children: [
+        //             SizedBox(width: 8),
+        //             StreamBuilder(
+        //               stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
+        //               builder: (context, snapshot) => BlinkingCircle(),
+        //             ),
+        //             SizedBox(width: 16),
+        //             Expanded(child: Text(widget.host.adress, style: TextStyle(fontSize: 16), overflow: TextOverflow.fade, softWrap: false)),
+        //             SizedBox(width: 16),
+        //             SizedBox(width: 70, child: RecentStats(host: widget.host.adress, size: 150)),
+        //             SizedBox(width: 70, height: 32, child: PreviewHistorgam(host: widget.host.adress, size: 150)),
+        //             SizedBox(width: 8),
+        //             Icon(!expanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up),
+        //             SizedBox(width: 4),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
         SliverToBoxAdapter(
           child: RepaintBoundary(
             child: AnimatedContainer(
@@ -116,5 +165,36 @@ class _HostTileState extends State<HostTile> {
         },
       ),
     );
+  }
+}
+
+class _PinnedSliverDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  _PinnedSliverDelegate({required this.child});
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return SizedBox.expand(
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+          child: Container(
+            color: Colors.transparent,
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 48;
+
+  @override
+  double get minExtent => 48;
+
+  @override
+  bool shouldRebuild(covariant _PinnedSliverDelegate oldDelegate) {
+    return child != oldDelegate.child;
   }
 }

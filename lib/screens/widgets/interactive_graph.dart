@@ -450,8 +450,8 @@ class GraphPainter extends CustomPainter {
         tp.paint(canvas, Offset(size.width * i - twidth / 2, size.height - theight));
 
         // Draw top line over dataset
-        hpath.moveTo(size.width * i, 0);
-        hpath.lineTo(size.width * i, 16 - theight);
+        hpath.moveTo(size.width * i, 6);
+        hpath.lineTo(size.width * i, 12);
 
         // Draw bottom line over time text
         hpath.moveTo(size.width * i, size.height - 16);

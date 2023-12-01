@@ -50,7 +50,7 @@ class _RecentStatsState extends State<RecentStats> {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle st = TextStyle(fontSize: 9, fontWeight: FontWeight.w400);
+    TextStyle st = TextStyle(fontSize: 8, fontWeight: FontWeight.w400);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,

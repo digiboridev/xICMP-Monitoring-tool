@@ -23,12 +23,12 @@ class PingStatsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ColorScheme.fromSeed(
-      seedColor: Color(0xff101216),
+      seedColor: Color(0xff151820),
       brightness: Brightness.dark,
-      surfaceTint: Colors.black,
+      surfaceTint: Color(0xff101216),
       primary: Colors.white,
       secondary: Colors.yellowAccent,
-      // background: Color(0xff101216),
+      background: Color(0xff101216),
     );
 
     return MaterialApp(
