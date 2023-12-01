@@ -111,12 +111,12 @@ class StatsRepositoryDriftImpl implements StatsRepository {
 
   @override
   Future<List<Ping>> hostPingsPeriod(String host, DateTime from, DateTime to) async {
-    return _dao.hostPingsPeriod(host, from, to).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
+    return _dao.hostPingsPeriod(host, from, to).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList(growable: false));
   }
 
   @override
   Future<List<Ping>> hostPingsPeriodScaled(String host, DateTime from, DateTime to, int scale) async {
-    return _dao.hostPingsPeriodScaled(host, from, to, scale).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList());
+    return _dao.hostPingsPeriodScaled(host, from, to, scale).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList(growable: false));
   }
 
   @override

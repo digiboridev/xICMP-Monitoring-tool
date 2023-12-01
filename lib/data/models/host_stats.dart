@@ -12,9 +12,7 @@ class HostStats with EquatableMixin {
   HostStats(this.avg, this.min, this.max, this.count, this.lostCount, this.lossPercent);
 
   @override
-  List<Object> get props {
-    return [avg, min, max, count, lostCount, lossPercent];
-  }
+  List<Object> get props => [avg, min, max, count, lostCount, lossPercent];
 
   @override
   String toString() {

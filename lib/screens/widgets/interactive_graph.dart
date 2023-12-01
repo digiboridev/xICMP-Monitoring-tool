@@ -2,8 +2,10 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:quiver/collection.dart';
 import 'package:xicmpmt/core/formatters.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/ping.dart';
@@ -65,7 +67,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     from = now.subtract(selectedPeriod);
     to = now;
 
-    final newData = await SL.statsRepository.hostPingsPeriodScaled(widget.host, from, to, (rasterWidth * 10 * 1).toInt());
+    final newData = await SL.statsRepository.hostPingsPeriodScaled(widget.host, from, to, (rasterWidth * 10).toInt());
     if (!mounted) return;
 
     print('loaded ${newData.length} points for $scale scale');
@@ -232,7 +234,7 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
 }
 
 class GraphPainter extends CustomPainter {
-  final Iterable<Ping> dataSet;
+  final List<Ping> dataSet;
 
   /// Start time of unscaled graph
   final DateTime start;
@@ -258,8 +260,8 @@ class GraphPainter extends CustomPainter {
 
   GraphPainter(this.dataSet, this.scale, this.offset, this.cWidth, this.pixelRatio, this.start, this.end, {this.maxValue = 1000});
 
-  static final Map<int, double> _heightCalcPool = {};
-  // static final Map<String, List<Offset>> _dLinePool = {};
+  static final Map<int, double> _heightCalcPool = {}; // Limited to maxValue
+  static final LruMap<String, List<Offset>> _dLinePool = LruMap(maximumSize: 500000); // ~20mB
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -281,6 +283,8 @@ class GraphPainter extends CustomPainter {
 
     double viewPortRasterWidth = cWidth * pixelRatio;
 
+    String viewPortKey = '$first$last${size.width}';
+
     // Calc canvas vertical position by value
     // 32 is top + bottom padding of dataset to avoid matrix scale
     double hCalcFunc(num value) {
@@ -295,9 +299,7 @@ class GraphPainter extends CustomPainter {
       return ((size.height - 32) * invert);
     }
 
-    // Wrap hCalcFunc to avoid recalculating on every frame
-    // by caching results in a pool
-    // Real distinc values is about 200 for 20000 points
+    // Wrapper hCalc for caching results in a pool
     double hCalc(int v) => _heightCalcPool.putIfAbsent(v, () => hCalcFunc(v));
 
     // Calc canvas horizontal position by timestamp
@@ -315,7 +317,8 @@ class GraphPainter extends CustomPainter {
     // Count of lines that will be drawn
     int viewPortCount = 0;
 
-    List<Offset> dLine(int t, int v) {
+    // Function to calculate dataset polygon
+    List<Offset> dLineFunc(int t, int v) {
       double x = wCalc(t);
       double ylow = size.height - 16;
       double yhigh = hCalc(v) + 16;
@@ -326,13 +329,16 @@ class GraphPainter extends CustomPainter {
       return [pointLow, pointHigh];
     }
 
-    // List<Offset> dLine(int t, int v) => _dLinePool.putIfAbsent('$t$v', () => dLineFunc(t, v));
+    // Wrapper dLineFunc to avoid recalculating on every frame by caching results in a pool
+    // Has significant performance impact while scrolling by reducing
+    // number of calculations for same points
+    List<Offset> dLine(int t, int v) => _dLinePool.putIfAbsent('$t$v$viewPortKey', () => dLineFunc(t, v));
 
     for (var i = 0; i < dataSet.length; i++) {
-      final p = dataSet.elementAt(i);
+      final p = dataSet[i];
       final timeStamp = p.time.millisecondsSinceEpoch;
-      final value = p.latency;
       if (timeStamp > viewPortTimeStampStart || timeStamp < viewPortTimeStampEnd) continue;
+      final value = p.latency;
 
       dpath.addPolygon(dLine(timeStamp, value), true);
       viewPortCount++;
@@ -463,7 +469,7 @@ class GraphPainter extends CustomPainter {
     stopwatch.stop();
     print('GraphPainter $viewPortCount points in ${stopwatch.elapsedMicroseconds}us');
     print('heightCalcPool: ${_heightCalcPool.length}');
-    // print('dLinePool: ${_dLinePool.length}');
+    print('dLinePool: ${_dLinePool.length}');
   }
 
   @override
@@ -473,7 +479,7 @@ class GraphPainter extends CustomPainter {
         oldDelegate.cWidth != cWidth ||
         start != oldDelegate.start ||
         end != oldDelegate.end ||
-        oldDelegate.dataSet != dataSet;
+        listEquals(dataSet, oldDelegate.dataSet);
   }
 }
 
