@@ -23,7 +23,7 @@ class MonitoringService {
     _monitoringSubscription = _createMonitoringStream().listen((ping) => _repository.setPing(ping));
   }
 
-  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(milliseconds: 64)}) async* {
+  Stream<Ping> _createMonitoringStream({Duration interval = const Duration(milliseconds: 100)}) async* {
     List<Host> hosts = await _repository.getAllHosts();
     AppLogger.debug('Hosts: $hosts', name: 'MonitoringService');
 

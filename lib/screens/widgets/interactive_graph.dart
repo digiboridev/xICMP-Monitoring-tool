@@ -1,4 +1,5 @@
 // ignore_for_file: file_names
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/gestures.dart';
@@ -40,12 +41,18 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadData();
+
+      // Auto update data every 5 seconds
+      // Only if graph is not zoomed, to avoid drift on detailed view
+      Timer.periodic(Duration(seconds: 5), (timer) {
+        if (!mounted) return timer.cancel();
+        if (scale == 1.0) loadData();
+      });
+
       scr.addListener(() {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          offset = scr.offset;
-          setState(() {});
-        });
+        if (!mounted) return;
+        offset = scr.offset;
+        setState(() {});
       });
     });
   }
@@ -58,13 +65,10 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
     from = now.subtract(selectedPeriod);
     to = now;
 
-    data.clear();
-    setState(() {});
-
     final newData = await SL.statsRepository.hostPingsPeriodScaled(widget.host, from, to, (rasterWidth * 10 * 1).toInt());
     if (!mounted) return;
 
-    print('loaded ${newData.length} points for $scale scale, forced');
+    print('loaded ${newData.length} points for $scale scale');
     data = newData;
     setState(() => {});
   }
@@ -81,52 +85,43 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
               return SizedBox(
                 width: width,
                 height: height,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned.fill(
-                      child: SingleChildScrollView(
-                        clipBehavior: Clip.none,
-                        controller: scr,
-                        scrollDirection: Axis.horizontal,
-                        physics: BouncingScrollPhysics(),
-                        dragStartBehavior: DragStartBehavior.down,
-                        child: SizedBox(
-                          // Grow conteiner width depend on scale value
-                          width: width * scale,
-                          child: CustomPaint(
-                            willChange: true,
-                            isComplex: true,
-                            painter: GraphPainter(data, scale, offset, width, MediaQuery.of(context).devicePixelRatio, from, to),
-                          ),
-                        ),
+                child: GestureDetector(
+                  onScaleStart: (details) {
+                    prevOffset = scr.offset;
+                    prevscale = scale;
+                  },
+                  // Adjust new scale loocking on previous values
+                  onScaleUpdate: (details) {
+                    setState(() {
+                      // Adjust scale
+                      scale = prevscale * details.scale;
+                      if (scale < 1.0) scale = 1.0;
+                      // Adjust offset
+                      final newOffset = prevOffset * details.scale + details.focalPoint.dx * (details.scale - 1);
+                      // Jump to offset proportionaly to scale
+                      if (scale > 1.0) {
+                        scr.jumpTo(newOffset);
+                        offset = newOffset;
+                      }
+                    });
+                  },
+
+                  child: SingleChildScrollView(
+                    clipBehavior: Clip.none,
+                    controller: scr,
+                    scrollDirection: Axis.horizontal,
+                    physics: BouncingScrollPhysics(),
+                    dragStartBehavior: DragStartBehavior.down,
+                    child: SizedBox(
+                      // Grow conteiner width depend on scale value
+                      width: width * scale,
+                      child: CustomPaint(
+                        willChange: true,
+                        isComplex: true,
+                        painter: GraphPainter(data, scale, offset, width, MediaQuery.of(context).devicePixelRatio, from, to),
                       ),
                     ),
-                    GestureDetector(
-                      onScaleStart: (details) {
-                        prevOffset = scr.offset;
-                        prevscale = scale;
-                      },
-                      // Adjust new scale loocking on previous values
-                      onScaleUpdate: (details) {
-                        setState(() {
-                          // Adjust scale
-                          scale = prevscale * details.scale;
-                          if (scale < 1.0) scale = 1.0;
-                          // Adjust offset
-                          final newOffset = prevOffset * details.scale + details.focalPoint.dx * (details.scale - 1);
-                          // Jump to offset proportionaly to scale
-                          if (scale > 1.0) {
-                            scr.jumpTo(newOffset);
-                            offset = newOffset;
-                          }
-                        });
-                      },
-                      // onScaleEnd: (details) => loadData(),
-                      behavior: HitTestBehavior.translucent,
-                      child: Container(),
-                    ),
-                  ],
+                  ),
                 ),
               );
             },
@@ -137,7 +132,6 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
             final width = constrains.maxWidth;
             return Row(
               children: [
-                // Text('Period: ', style: TextStyle(color: Color(0xffF5F5F5), fontSize: 12, fontWeight: FontWeight.w400)),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
@@ -426,7 +420,19 @@ class GraphPainter extends CustomPainter {
         double timeNum = last - timeDiff * i;
         DateTime time = DateTime.fromMillisecondsSinceEpoch(timeNum.toInt());
 
-        TextSpan span = TextSpan(style: TextStyle(color: Color(0xffF5F5F5), fontSize: 10, fontWeight: FontWeight.w200), text: time.numhm);
+        Duration viewTimeDiff =
+            DateTime.fromMillisecondsSinceEpoch(viewPortTimeStampStart).difference(DateTime.fromMillisecondsSinceEpoch(viewPortTimeStampEnd));
+
+        String timeText = '';
+        if (viewTimeDiff < Duration(hours: 1)) {
+          timeText = time.numms;
+        } else if (viewTimeDiff < Duration(days: 2)) {
+          timeText = time.numhm;
+        } else {
+          timeText = time.numdm;
+        }
+
+        TextSpan span = TextSpan(style: TextStyle(color: Color(0xffF5F5F5), fontSize: 10, fontWeight: FontWeight.w200), text: timeText);
         TextPainter tp = TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
         tp.layout();
 
@@ -434,15 +440,15 @@ class GraphPainter extends CustomPainter {
         final theight = tp.size.height;
 
         // Draw time text
-        tp.paint(canvas, Offset(size.width * i, size.height - theight));
+        tp.paint(canvas, Offset(size.width * i - twidth / 2, size.height - theight));
 
         // Draw top line over dataset
-        hpath.moveTo(size.width * i + twidth / 2, 0);
-        hpath.lineTo(size.width * i + twidth / 2, 8);
+        hpath.moveTo(size.width * i, 0);
+        hpath.lineTo(size.width * i, 16 - theight);
 
         // Draw bottom line over time text
-        hpath.moveTo(size.width * i + twidth / 2, size.height - 16);
-        hpath.lineTo(size.width * i + twidth / 2, size.height - theight);
+        hpath.moveTo(size.width * i, size.height - 16);
+        hpath.lineTo(size.width * i, size.height - theight);
       }
     }
 
