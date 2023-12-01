@@ -429,17 +429,18 @@ class GraphPainter extends CustomPainter {
         Duration viewTimeDiff =
             DateTime.fromMillisecondsSinceEpoch(viewPortTimeStampStart).difference(DateTime.fromMillisecondsSinceEpoch(viewPortTimeStampEnd));
 
+        // Time precision depends on view time diff
         String timeText = '';
-        if (viewTimeDiff < Duration(hours: 1)) {
-          timeText = time.numms;
+        if (viewTimeDiff < Duration(minutes: 2)) {
+          timeText = time.numhms;
         } else if (viewTimeDiff < Duration(days: 2)) {
           timeText = time.numhm;
         } else {
           timeText = time.numdm;
         }
 
-        TextSpan span = TextSpan(style: TextStyle(color: Color(0xffF5F5F5), fontSize: 10, fontWeight: FontWeight.w200), text: timeText);
-        TextPainter tp = TextPainter(text: span, textAlign: TextAlign.left, textDirection: TextDirection.ltr);
+        TextSpan span = TextSpan(style: TextStyle(color: Color(0xffF5F5F5), fontSize: 8, fontWeight: FontWeight.w200), text: timeText);
+        TextPainter tp = TextPainter(text: span, textAlign: TextAlign.center, textDirection: TextDirection.ltr);
         tp.layout();
 
         final twidth = tp.size.width;
