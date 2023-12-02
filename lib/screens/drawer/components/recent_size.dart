@@ -36,7 +36,7 @@ class _RecentSizeState extends State<RecentSize> {
         children: [
           Row(
             children: [
-              Text('Recent size: ${recentSize} samples'),
+              Text('Preview: ${recentSize} samples'),
               const Spacer(),
               const Tooltip(
                 triggerMode: TooltipTriggerMode.tap,

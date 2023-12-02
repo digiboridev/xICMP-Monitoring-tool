@@ -4,7 +4,7 @@ import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
 import 'package:xicmpmt/screens/widgets/host_tile.dart';
-import 'package:xicmpmt/screens/widgets/app_drawer.dart';
+import 'package:xicmpmt/screens/drawer/app_drawer.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

@@ -13,7 +13,7 @@ class _RasterScaleState extends State<RasterScale> {
   final settingsRepository = SL.settingsRepository;
   final debouncer = Debouncer(delay: const Duration(milliseconds: 300));
 
-  int _rasterScale = 100;
+  int _rasterScale = 10;
 
   @override
   void initState() {
