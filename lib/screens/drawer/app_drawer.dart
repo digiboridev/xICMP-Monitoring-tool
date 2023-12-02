@@ -70,7 +70,19 @@ class _AppDrawerState extends State<AppDrawer> {
           child: FillableScrollableWrapper(
             child: Column(
               children: [
-                DrawerHeader(child: Center(child: Text('xICMP Monitoring Tool'))),
+                SizedBox(
+                  height: 120,
+                  child: DrawerHeader(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('xICMP', style: Theme.of(context).textTheme.headlineLarge),
+                        Text('Monitoring Tool', style: Theme.of(context).textTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
+                ),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -97,11 +109,12 @@ class _AppDrawerState extends State<AppDrawer> {
                         ),
                         SizedBox(height: 16),
                         Divider(),
+                        SizedBox(height: 8),
                         PingInterval(),
                         PingTimeout(),
                         RecentSize(),
                         RasterScale(),
-                        MinSpacer(minHeight: 64),
+                        MinSpacer(minHeight: 128),
                         TextButton(
                           onPressed: () {},
                           child: const Row(children: [Icon(Icons.workspace_premium_outlined), SizedBox(width: 8), Text('About')]),

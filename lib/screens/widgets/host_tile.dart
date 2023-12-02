@@ -54,6 +54,7 @@ class _HostTileState extends State<HostTile> {
             child: RepaintBoundary(
               child: Row(
                 children: [
+                  SizedBox(width: 4),
                   Expanded(
                     child: Material(
                       color: Colors.transparent,
@@ -95,39 +96,6 @@ class _HostTileState extends State<HostTile> {
             ),
           ),
         ),
-        // SliverAppBar(
-        //   pinned: true,
-        //   actions: [menuButton()],
-        //   automaticallyImplyLeading: false,
-        //   title: RepaintBoundary(
-        //     child: InkWell(
-        //       borderRadius: BorderRadius.circular(16),
-        //       onTap: () => setState(() => expanded = !expanded),
-        //       child: Opacity(
-        //         opacity: widget.host.enabled ? 1 : 0.5,
-        //         child: Row(
-        //           mainAxisSize: MainAxisSize.max,
-        //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //           children: [
-        //             SizedBox(width: 8),
-        //             StreamBuilder(
-        //               stream: statsRepository.eventBus.where((event) => event is PingAdded && event.ping.host == widget.host.adress),
-        //               builder: (context, snapshot) => BlinkingCircle(),
-        //             ),
-        //             SizedBox(width: 16),
-        //             Expanded(child: Text(widget.host.adress, style: TextStyle(fontSize: 16), overflow: TextOverflow.fade, softWrap: false)),
-        //             SizedBox(width: 16),
-        //             SizedBox(width: 70, child: RecentStats(host: widget.host.adress, size: 150)),
-        //             SizedBox(width: 70, height: 32, child: PreviewHistorgam(host: widget.host.adress, size: 150)),
-        //             SizedBox(width: 8),
-        //             Icon(!expanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up),
-        //             SizedBox(width: 4),
-        //           ],
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        // ),
         SliverToBoxAdapter(
           child: RepaintBoundary(
             child: AnimatedContainer(
@@ -148,8 +116,8 @@ class _HostTileState extends State<HostTile> {
 
   Widget menuButton() {
     return Container(
-      width: 32,
-      height: 32,
+      width: 28,
+      height: 28,
       margin: EdgeInsets.only(right: 16),
       child: PopupMenuButton(
         padding: EdgeInsets.zero,
