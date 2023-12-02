@@ -4,6 +4,7 @@ import 'package:sliver_tools/sliver_tools.dart';
 import 'package:xicmpmt/core/app_logger.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/host.dart';
+import 'package:xicmpmt/data/repositories/settings.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
 import 'package:xicmpmt/screens/widgets/interactive_graph.dart';
@@ -20,9 +21,12 @@ class HostTile extends StatefulWidget {
 }
 
 class _HostTileState extends State<HostTile> {
+  final SettingsRepository settingsRepository = SL.settingsRepository;
   final StatsRepository statsRepository = SL.statsRepository;
   final MonitoringService monitoringService = SL.monitoringService;
 
+  int recentSize = 150;
+  int rasterScale = 10;
   bool expanded = false;
 
   void toggleRunning() {
@@ -40,6 +44,13 @@ class _HostTileState extends State<HostTile> {
   @override
   void initState() {
     super.initState();
+
+    settingsRepository.getSettings.then((settings) {
+      if (!mounted) return;
+      recentSize = settings.recentSize;
+      rasterScale = settings.rasterScale;
+      setState(() {});
+    });
   }
 
   @override
@@ -77,8 +88,8 @@ class _HostTileState extends State<HostTile> {
                                 SizedBox(width: 16),
                                 Expanded(child: Text(widget.host.adress, style: TextStyle(fontSize: 16), overflow: TextOverflow.fade, softWrap: false)),
                                 SizedBox(width: 16),
-                                SizedBox(width: 70, child: RecentStats(host: widget.host.adress, size: 150)),
-                                SizedBox(width: 70, height: 32, child: PreviewHistorgam(host: widget.host.adress, size: 150)),
+                                SizedBox(width: 70, child: RecentStats(host: widget.host.adress, size: recentSize)),
+                                SizedBox(width: 70, height: 32, child: PreviewHistorgam(host: widget.host.adress, size: recentSize)),
                                 SizedBox(width: 4),
                                 Icon(!expanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up),
                                 SizedBox(width: 4),
@@ -105,7 +116,7 @@ class _HostTileState extends State<HostTile> {
               curve: Curves.easeOutExpo,
               child: OverflowBox(
                 maxHeight: 250,
-                child: expanded ? InteractiveGraph(host: widget.host.adress) : null,
+                child: expanded ? InteractiveGraph(host: widget.host.adress, rasterScale: rasterScale) : null,
               ),
             ),
           ),

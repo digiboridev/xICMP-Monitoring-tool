@@ -8,5 +8,6 @@ abstract class SL {
 
   static final SettingsRepository settingsRepository = SettingsRepositoryPrefsImpl();
   static final StatsRepository statsRepository = StatsRepositoryDriftImpl(_drift.statsDao);
-  static final MonitoringService monitoringService = MonitoringService(statsRepository);
+
+  static final MonitoringService monitoringService = MonitoringService(statsRepository, settingsRepository);
 }

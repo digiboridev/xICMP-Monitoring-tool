@@ -14,7 +14,8 @@ import 'package:xicmpmt/data/repositories/stats.dart';
 
 class InteractiveGraph extends StatefulWidget {
   final String host;
-  const InteractiveGraph({required this.host, super.key});
+  final int rasterScale;
+  const InteractiveGraph({required this.host, required this.rasterScale, super.key});
 
   @override
   State<InteractiveGraph> createState() => _InteractiveGraphState();
@@ -65,12 +66,13 @@ class _InteractiveGraphState extends State<InteractiveGraph> {
   loadData() async {
     final rasterWidth = MediaQuery.of(context).size.width * MediaQuery.of(context).devicePixelRatio;
     AppLogger.debug('Raster width: $rasterWidth', name: 'InteractiveGraph');
+    AppLogger.debug('Raster scale: ${widget.rasterScale}', name: 'InteractiveGraph');
 
     final now = DateTime.now();
     from = now.subtract(selectedPeriod);
     to = now;
 
-    final newData = await SL.statsRepository.hostPingsPeriodScaled(widget.host, from, to, (rasterWidth * 10).toInt());
+    final newData = await SL.statsRepository.hostPingsPeriodScaled(widget.host, from, to, (rasterWidth * widget.rasterScale).toInt());
     if (!mounted) return;
 
     AppLogger.debug('loaded ${newData.length} points for $scale scale', name: 'InteractiveGraph');

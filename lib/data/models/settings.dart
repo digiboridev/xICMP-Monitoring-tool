@@ -24,7 +24,7 @@ class AppSettings with EquatableMixin {
   ) : v = 1;
 
   factory AppSettings.base() {
-    return AppSettings._(const Duration(milliseconds: 500), const Duration(milliseconds: 1000), 100, 10, false, false);
+    return AppSettings._(const Duration(milliseconds: 250), const Duration(milliseconds: 1000), 100, 10, false, false);
   }
 
   AppSettings copyWith({
