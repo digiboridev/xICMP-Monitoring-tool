@@ -4,7 +4,7 @@ import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
 import 'package:xicmpmt/screens/widgets/host_tile.dart';
-import 'package:xicmpmt/screens/widgets/app_drawer.dart';
+import 'package:xicmpmt/screens/drawer/app_drawer.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -68,46 +68,35 @@ class _HostsListState extends State<HostsList> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
-                  // TODO toltips
-                  SizedBox(width: 8),
-                  Text('Act', style: TextStyle(fontSize: 14)),
+                  SizedBox(width: 12),
+                  Tooltip(
+                    message: 'Current host activity',
+                    child: Text('Act', style: TextStyle(fontSize: 14)),
+                  ),
                   SizedBox(width: 16),
-                  Expanded(child: Text('Host', style: TextStyle(fontSize: 14))),
+                  Expanded(
+                    child: Tooltip(
+                      message: 'Host adress',
+                      child: Text('Host', style: TextStyle(fontSize: 14)),
+                    ),
+                  ),
                   SizedBox(width: 16),
-                  Text('Stats', style: TextStyle(fontSize: 14)),
+                  Tooltip(
+                    message: 'Summary stats of recent activity',
+                    child: Text('Stats', style: TextStyle(fontSize: 14)),
+                  ),
                   SizedBox(width: 32),
-                  Text('Preview', style: TextStyle(fontSize: 14)),
-                  SizedBox(width: 38),
+                  Tooltip(
+                    message: 'Preview of recent activity',
+                    child: Text('Preview', style: TextStyle(fontSize: 14)),
+                  ),
+                  SizedBox(width: 32),
                   Text('More', style: TextStyle(fontSize: 14)),
                   SizedBox(width: 16),
                 ],
               ),
             ),
           ),
-          // SliverAppBar(
-          //   title: Row(
-          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //     children: const [
-          //       // TODO toltips
-          //       SizedBox(width: 8),
-          //       Text('Act', style: TextStyle(fontSize: 16)),
-          //       SizedBox(width: 16),
-          //       Expanded(child: Text('Host', style: TextStyle(fontSize: 16))),
-          //       SizedBox(width: 16),
-          //       Text('Stats', style: TextStyle(fontSize: 16)),
-          //       SizedBox(width: 28),
-          //       Text('Preview', style: TextStyle(fontSize: 16)),
-          //       SizedBox(width: 50),
-          //       Text('More', style: TextStyle(fontSize: 16)),
-          //     ],
-          //   ),
-          //   floating: false,
-          //   pinned: true,
-          //   snap: false,
-          //   automaticallyImplyLeading: false,
-          //   actions: const [SizedBox.shrink()],
-          //   toolbarHeight: 32,
-          // ),
           for (var host in hosts) HostTile(host: host, key: Key(host.adress)),
         ],
       ),

@@ -20,7 +20,7 @@ class _RecentStatsState extends State<RecentStats> {
   int get sum => samplesQueue.fold(0, (sum, ping) => sum + ping.latency);
   int get count => samplesQueue.length;
   int get lossCount => samplesQueue.where((ping) => ping.lost).length;
-  int get min => samplesQueue.fold(1000, (min, ping) => ping.latency < min ? ping.latency : min);
+  int get min => samplesQueue.fold(5000, (min, ping) => ping.latency < min ? ping.latency : min);
   double get avg => sum / count;
   double get lossPercent => lossCount / count * 100;
 
@@ -46,6 +46,14 @@ class _RecentStatsState extends State<RecentStats> {
       setState(() {});
       return true;
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant RecentStats oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.size != widget.size) {
+      samplesQueue.clear();
+    }
   }
 
   @override

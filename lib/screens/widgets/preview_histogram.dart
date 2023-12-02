@@ -47,6 +47,14 @@ class _PreviewHistorgamState extends State<PreviewHistorgam> {
   }
 
   @override
+  void didUpdateWidget(covariant PreviewHistorgam oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.size != widget.size) {
+      samplesQueue.clear();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: PreviewHistorgamPainter(samplesQueue, length: widget.size),
