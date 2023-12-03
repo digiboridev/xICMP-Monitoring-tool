@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
@@ -14,11 +15,13 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  void minimize() => const MethodChannel('main').invokeMethod('minimize');
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // TODO: implement onWillPop
+        minimize();
         return false;
       },
       child: Scaffold(endDrawer: AppDrawer(), body: const HostsList()),

@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:flutter/services.dart';
 import 'package:rxdart/streams.dart';
 import 'package:xicmpmt/core/app_logger.dart';
 import 'package:xicmpmt/data/models/host.dart';
@@ -22,24 +23,54 @@ class MonitoringService {
       upsertMonitoring();
     });
   }
+  final _mc = const MethodChannel('main');
   StreamSubscription? _monitoringSubscription;
 
   upsertMonitoring() async {
     AppLogger.debug('upsertMonitoring: ${_monitoringSubscription != null}', name: 'MonitoringService');
+
+    // Stop active monitoring
+    _monitoringSubscription?.cancel();
+
+    // Get hosts list
+    List<Host> hosts = await _statsRepository.getAllHosts();
+    AppLogger.debug('Hosts: $hosts', name: 'MonitoringService');
+
+    // Check if there are active hosts and needs to start monitoring
+    bool noActiveHosts = hosts.where((element) => element.enabled).isEmpty;
+    if (noActiveHosts) {
+      // Stop navive bindings
+      if (Platform.isAndroid) {
+        _mc.invokeMethod('stopForegroundService').ignore();
+        _mc.invokeMethod('stopWakeLock').ignore();
+      }
+      // Break operation
+      return;
+    }
 
     AppSettings settings = await _settingsRepository.getSettings;
     AppLogger.debug('Settings: $settings', name: 'MonitoringService');
     final pingInterval = settings.pingInterval;
     final pingTimeout = settings.pingTimeout;
 
-    _monitoringSubscription?.cancel();
-    _monitoringSubscription = _createMonitoringStream(pingInterval, pingTimeout).listen((ping) => _statsRepository.setPing(ping));
+    _monitoringSubscription = _createMonitoringStream(hosts, pingInterval, pingTimeout).listen((ping) => _statsRepository.setPing(ping));
+
+    // Set native bindings
+    if (Platform.isAndroid) {
+      if (settings.andWakeLock) {
+        _mc.invokeMethod('startWakeLock').ignore();
+      } else {
+        _mc.invokeMethod('stopWakeLock').ignore();
+      }
+      if (settings.andForeground) {
+        _mc.invokeMethod('startForegroundService').ignore();
+      } else {
+        _mc.invokeMethod('stopForegroundService').ignore();
+      }
+    }
   }
 
-  Stream<Ping> _createMonitoringStream(Duration interval, Duration timeout) async* {
-    List<Host> hosts = await _statsRepository.getAllHosts();
-    AppLogger.debug('Hosts: $hosts', name: 'MonitoringService');
-
+  Stream<Ping> _createMonitoringStream(List<Host> hosts, Duration interval, Duration timeout) async* {
     // Sequential
     //
     // while (true) {
