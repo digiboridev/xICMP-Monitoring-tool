@@ -36,7 +36,7 @@ class _RasterScaleState extends State<RasterScale> {
         children: [
           Row(
             children: [
-              Text('Raster scale: ${rasterScale} x'),
+              Text('Raster scale: $rasterScale x'),
               const Spacer(),
               const Tooltip(
                 triggerMode: TooltipTriggerMode.tap,

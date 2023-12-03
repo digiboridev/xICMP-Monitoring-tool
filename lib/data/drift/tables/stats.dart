@@ -35,6 +35,19 @@ class StatsDao extends DatabaseAccessor<DB> with _$StatsDaoMixin {
     await into(pingTable).insert(ping, mode: InsertMode.insertOrReplace);
   }
 
+  Future<List<DriftPing>> hostPings(String host) async {
+    final query = customSelect(
+      'SELECT latency, timestamp, lost FROM ping_table WHERE host = ?',
+      variables: [Variable.withString(host)],
+    );
+
+    final mappedQuery = query.map(
+      (row) => DriftPing(host: host, timestamp: row.read('timestamp'), latency: row.read<double>('latency').toInt(), lost: row.read('lost')),
+    );
+
+    return await mappedQuery.get();
+  }
+
   Future<List<DriftPing>> hostPingsPeriod(String host, DateTime from, DateTime to) async {
     final fromStamp = from.millisecondsSinceEpoch;
     final toStamp = to.millisecondsSinceEpoch;

@@ -41,6 +41,7 @@ abstract class StatsRepository {
   Future<List<Host>> getAllHosts();
 
   Future setPing(Ping ping);
+  Future<List<Ping>> hostPings(String host);
   Future<List<Ping>> hostPingsPeriod(String host, DateTime from, DateTime to);
   Future<List<Ping>> hostPingsPeriodScaled(String host, DateTime from, DateTime to, int scale);
   Future<HostStats> hostStats(String host);
@@ -107,6 +108,11 @@ class StatsRepositoryDriftImpl implements StatsRepository {
   Future setPing(Ping ping) async {
     await _dao.setPing(StatsMapper.fromPing(ping));
     _eventBus.add(PingAdded(ping));
+  }
+
+  @override
+  Future<List<Ping>> hostPings(String host) async {
+    return _dao.hostPings(host).then((raw) => raw.map((e) => StatsMapper.toPing(e)).toList(growable: false));
   }
 
   @override

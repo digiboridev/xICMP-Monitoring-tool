@@ -43,4 +43,4 @@ class PingStatsApp extends StatelessWidget {
 }
 
 
- // settings: ping interval, foreground, wake lock, raster scale, ping timeout, recent size
+ //  TODO: sentry, about, fore+wakelock, sign, md, policy, license, release.

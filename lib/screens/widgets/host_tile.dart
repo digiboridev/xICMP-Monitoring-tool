@@ -1,9 +1,13 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:xicmpmt/core/app_logger.dart';
 import 'package:xicmpmt/core/sl.dart';
 import 'package:xicmpmt/data/models/host.dart';
+import 'package:xicmpmt/data/models/ping.dart';
 import 'package:xicmpmt/data/repositories/settings.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
@@ -11,6 +15,7 @@ import 'package:xicmpmt/screens/widgets/interactive_graph.dart';
 import 'package:xicmpmt/screens/widgets/blinking_circle.dart';
 import 'package:xicmpmt/screens/widgets/preview_histogram.dart';
 import 'package:xicmpmt/screens/widgets/recent_stats.dart';
+import 'package:xicmpmt/utils/to_csv.dart';
 
 class HostTile extends StatefulWidget {
   final Host host;
@@ -39,6 +44,38 @@ class _HostTileState extends State<HostTile> {
     statsRepository.deleteHost(widget.host.adress);
     monitoringService.upsertMonitoring();
     AppLogger.debug('delete host ${widget.host.adress}', name: 'HostTile');
+  }
+
+  exportData() async {
+    List<Ping> data = await statsRepository.hostPings(widget.host.adress);
+    AppLogger.debug('export data ${widget.host.adress} ${data.length}', name: 'HostTile');
+
+    List<String> header = ['host', 'time', 'latency ms', 'lost'];
+    List<List<String>> rows = data.map((e) => [e.host, e.time.toString(), e.latency.toString(), e.lost.toString()]).toList();
+
+    try {
+      final filename = await toCSV(widget.host.adress, header, rows);
+      ScaffoldMessenger.of(context).showMaterialBanner(
+        MaterialBanner(
+          content: Text('Saved to $filename'),
+          // backgroundColor: AppColors.cyan400,
+          actions: [
+            TextButton(
+              onPressed: () => launchUrl(Uri.parse('content://$filename')),
+              child: const Text('Open'),
+            ),
+            TextButton(
+              onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (e, s) {
+      debugPrint(e.toString());
+      AppLogger.error('Error: $e', error: e, stack: s);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
   }
 
   @override
@@ -141,7 +178,7 @@ class _HostTileState extends State<HostTile> {
         onSelected: (value) {
           if (value == 'toggle') toggleRunning();
           if (value == 'delete') deleteHost(context);
-          // TODO: implement export
+          if (value == 'export') exportData();
         },
       ),
     );
