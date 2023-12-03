@@ -39,7 +39,6 @@ class _RasterScaleState extends State<RasterScale> {
               Text('Raster scale: $rasterScale x'),
               const Spacer(),
               const Tooltip(
-                triggerMode: TooltipTriggerMode.tap,
                 message: 'Number of samples per pixel used to display detailed graph',
                 child: Icon(Icons.info_outline_rounded),
               ),

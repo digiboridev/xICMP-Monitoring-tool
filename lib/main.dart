@@ -43,4 +43,4 @@ class PingStatsApp extends StatelessWidget {
 }
 
 
- //  TODO: sentry, about, fore+wakelock, sign, md, policy, license, release.
+ //  TODO: sentry, about, sign, md, policy, license, release.
