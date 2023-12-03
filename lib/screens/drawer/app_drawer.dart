@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,11 +7,13 @@ import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/repositories/settings.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
+import 'package:xicmpmt/screens/drawer/components/foreground_switch.dart';
 import 'package:xicmpmt/screens/drawer/components/host_adress_dialog.dart';
 import 'package:xicmpmt/screens/drawer/components/ping_interval.dart';
 import 'package:xicmpmt/screens/drawer/components/ping_timeout.dart';
 import 'package:xicmpmt/screens/drawer/components/raster_scale.dart';
 import 'package:xicmpmt/screens/drawer/components/recent_size.dart';
+import 'package:xicmpmt/screens/drawer/components/wakelock_switch.dart';
 import 'package:xicmpmt/utils/fillable_scrollable_wrapper.dart';
 import 'package:xicmpmt/utils/min_spacer.dart';
 
@@ -71,7 +74,7 @@ class _AppDrawerState extends State<AppDrawer> {
             child: Column(
               children: [
                 SizedBox(
-                  height: 120,
+                  height: 140,
                   child: DrawerHeader(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -114,6 +117,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         PingTimeout(),
                         RecentSize(),
                         RasterScale(),
+                        if (Platform.isAndroid) ...[WakelockSwitch(), SizedBox(height: 16), ForegroundSwitch()],
                         MinSpacer(minHeight: 128),
                         TextButton(
                           onPressed: () {},
