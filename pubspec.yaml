@@ -33,7 +33,6 @@ dependencies:
   http: ^1.1.0
   intl: ^0.18.1
   package_info_plus: ^4.2.0
-  # provider: ^6.0.5
   path: ^1.8.3
   path_provider: ^2.1.1
   shared_preferences: ^2.2.2
@@ -46,7 +45,8 @@ dependencies:
   crypto: ^3.0.3
   sentry_flutter: ^7.12.0
   rxdart: ^0.27.7
-  quiver: ^3.2.1
+  quiver: ^3.2.1  
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

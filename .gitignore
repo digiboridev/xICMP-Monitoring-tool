@@ -41,3 +41,4 @@ app.*.symbols
 app.*.map.json
 pubspec.lock
 .vscode/launch.json
+build.sh
