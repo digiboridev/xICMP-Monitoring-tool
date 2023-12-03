@@ -62,4 +62,4 @@ class App extends StatelessWidget {
 }
 
 
- //  TODO: about, sign, md, policy, license, release.
+ //  TODO: md, policy, release.
