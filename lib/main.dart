@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 // import 'package:flutter/rendering.dart';
 import 'package:xicmpmt/core/app_logger.dart';
-import 'package:xicmpmt/screens/main_screen.dart';
+import 'package:xicmpmt/screens/main_screen/main_screen.dart';
 
 Future<void> main() async {
   // debugRepaintRainbowEnabled = true;

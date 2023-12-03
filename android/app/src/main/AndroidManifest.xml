@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <application
-        android:label="xDSL Monitoring tool"
+        android:label="xICMP Monitoring tool"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
