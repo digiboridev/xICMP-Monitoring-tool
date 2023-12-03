@@ -7,6 +7,7 @@ import 'package:xicmpmt/data/models/host.dart';
 import 'package:xicmpmt/data/repositories/settings.dart';
 import 'package:xicmpmt/data/repositories/stats.dart';
 import 'package:xicmpmt/data/service/monitoring.dart';
+import 'package:xicmpmt/screens/drawer/components/about_dialog.dart';
 import 'package:xicmpmt/screens/drawer/components/foreground_switch.dart';
 import 'package:xicmpmt/screens/drawer/components/host_adress_dialog.dart';
 import 'package:xicmpmt/screens/drawer/components/ping_interval.dart';
@@ -120,10 +121,9 @@ class _AppDrawerState extends State<AppDrawer> {
                         if (Platform.isAndroid) ...[WakelockSwitch(), SizedBox(height: 16), ForegroundSwitch()],
                         MinSpacer(minHeight: 128),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () => showDialog(context: context, builder: (_) => const AppAboutDialog()),
                           child: const Row(children: [Icon(Icons.workspace_premium_outlined), SizedBox(width: 8), Text('About')]),
                         ),
-                        // TODO about
                       ],
                     ),
                   ),
