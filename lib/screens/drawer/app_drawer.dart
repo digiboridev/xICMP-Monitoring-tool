@@ -46,8 +46,11 @@ class _AppDrawerState extends State<AppDrawer> {
       builder: (_) => const HostAdressDialog(hostAdress: ''),
       barrierDismissible: true,
     );
-    if (newHost != null) statsRepository.addHost(Host(adress: newHost, enabled: true));
-    monitoringService.upsertMonitoring();
+
+    if (newHost is String && newHost.length > 3) {
+      statsRepository.addHost(Host(adress: newHost, enabled: true));
+      monitoringService.upsertMonitoring();
+    }
   }
 
   void deleteAll() async {
