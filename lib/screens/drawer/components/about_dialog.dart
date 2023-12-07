@@ -15,7 +15,8 @@ class AppAboutDialog extends StatefulWidget {
 class _AppAboutDialogState extends State<AppAboutDialog> {
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
+    double width = MediaQuery.of(context).size.shortestSide;
+
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
       child: FutureBuilder(
@@ -25,10 +26,14 @@ class _AppAboutDialogState extends State<AppAboutDialog> {
             return AboutDialog(
               applicationName: 'xICMP MT',
               applicationVersion: (snapshot.data as PackageInfo).version,
-              applicationIcon: Image.asset(
-                'assets/app_icon.png',
-                width: width / 4,
-                height: width / 4,
+              applicationIcon: LimitedBox(
+                maxHeight: 200,
+                maxWidth: 200,
+                child: Image.asset(
+                  'assets/app_icon.png',
+                  width: width / 4,
+                  height: width / 4,
+                ),
               ),
               applicationLegalese: '© 2019 - ${DateTime.now().year}\nVladislav Komelkov',
               children: [
