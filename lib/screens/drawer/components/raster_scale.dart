@@ -40,6 +40,7 @@ class _RasterScaleState extends State<RasterScale> {
               const Spacer(),
               const Tooltip(
                 message: 'Number of samples per pixel used to display detailed graph',
+                triggerMode: TooltipTriggerMode.tap,
                 child: Icon(Icons.info_outline_rounded),
               ),
             ],

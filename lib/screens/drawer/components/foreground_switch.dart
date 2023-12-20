@@ -48,6 +48,7 @@ class _ForegroundSwitchState extends State<ForegroundSwitch> {
           const Spacer(),
           const Tooltip(
             message: 'Foreground service its an android mechanism to prevent app from being killed by system by showing a notification.',
+            triggerMode: TooltipTriggerMode.tap,
             child: Icon(Icons.info_outline_rounded),
           ),
         ],

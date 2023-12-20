@@ -40,6 +40,7 @@ class _RecentSizeState extends State<RecentSize> {
               const Spacer(),
               const Tooltip(
                 message: 'Number of samples used to display preview stats',
+                triggerMode: TooltipTriggerMode.tap,
                 child: Icon(Icons.info_outline_rounded),
               ),
             ],

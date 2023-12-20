@@ -40,6 +40,7 @@ class _PingTimeoutState extends State<PingTimeout> {
               const Spacer(),
               const Tooltip(
                 message: 'Timeout for ping response, aslo max value for graph',
+                triggerMode: TooltipTriggerMode.tap,
                 child: Icon(Icons.info_outline_rounded),
               ),
             ],

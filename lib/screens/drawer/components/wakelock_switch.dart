@@ -49,6 +49,7 @@ class _WakelockSwitchState extends State<WakelockSwitch> {
           const Tooltip(
             message:
                 'Wakelock keeps CPU awake while sampling is running. It prevents app trottling by system, when screen is off. It may drain battery faster.',
+            triggerMode: TooltipTriggerMode.tap,
             child: Icon(Icons.info_outline_rounded),
           ),
         ],

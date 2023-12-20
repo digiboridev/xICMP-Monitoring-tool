@@ -101,6 +101,19 @@ class _HostsListState extends State<HostsList> {
             ),
           ),
           for (var host in hosts) HostTile(host: host, key: Key(host.adress)),
+          if (hosts.isEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.data_array),
+                    SizedBox(height: 16),
+                    Text('No hosts added yet'),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

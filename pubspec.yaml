@@ -1,7 +1,7 @@
 name: xicmpmt
 description:  xICMP Monitoring tool is an cross-platform app for real-time and background hosts monitoring.
 publish_to: 'none' 
-version: 2.0.6+6
+version: 2.0.7+7
 
 environment:
   sdk: '>=3.1.5 <4.0.0'

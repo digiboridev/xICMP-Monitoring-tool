@@ -40,6 +40,7 @@ class _PingIntervalState extends State<PingInterval> {
               const Spacer(),
               const Tooltip(
                 message: 'Pause between pings, pay attention to the battery consumption on short intervals',
+                triggerMode: TooltipTriggerMode.tap,
                 child: Icon(Icons.info_outline_rounded),
               ),
             ],

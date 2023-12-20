@@ -22,6 +22,10 @@ class _HostAdressDialogState extends State<HostAdressDialog> {
         title: const Text('Host address'),
         content: Form(key: formKey, child: hostField()),
         actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           Opacity(
             opacity: resultValid ? 1 : 0.5,
             child: TextButton(
@@ -39,6 +43,13 @@ class _HostAdressDialogState extends State<HostAdressDialog> {
       initialValue: hostAdress,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       onChanged: (v) => setState(() => hostAdress = v),
+      decoration: InputDecoration(
+        hintText: '127.0.0.1/abc.d',
+        border: OutlineInputBorder(),
+        isDense: true,
+        isCollapsed: true,
+        contentPadding: EdgeInsets.all(8),
+      ),
       // inputFormatters: [AppFormatters.ipFormatter],
       validator: (value) {
         if (value == null || value.isEmpty) {
