@@ -111,6 +111,9 @@ class MonitoringService {
       final receivePort = ReceivePort();
       isolate = await Isolate.spawn(
         (port) async {
+          // Setup local log to be sent to main isolate
+          AppLogger.stream.listen((event) => port.send(event));
+
           List<Stream<Ping>> streams = [];
           for (Host host in hosts) {
             if (!host.enabled) continue;
@@ -124,6 +127,7 @@ class MonitoringService {
       );
 
       await for (var msg in receivePort) {
+        if (msg is LogEntity) AppLogger.forward(msg);
         if (msg is Ping) yield msg;
       }
     } finally {
@@ -144,6 +148,7 @@ class MonitoringService {
       }
 
       final out = proc.stdout;
+      AppLogger.debug('Ping stdout: $out', name: 'MonitoringService');
 
       if (out is String) {
         final match = RegExp(r'(?<=time\s*=\s*)\d+').stringMatch(out);
@@ -159,6 +164,8 @@ class MonitoringService {
     } catch (e, s) {
       AppLogger.error('$e', name: 'MonitoringService', error: e, stack: s);
     }
+
+    AppLogger.info('Ping lost: $adress', name: 'MonitoringService');
     return Ping(host: adress, time: sendTime, latency: limit.inMilliseconds, lost: true);
   }
 }
