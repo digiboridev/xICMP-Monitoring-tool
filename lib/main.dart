@@ -52,6 +52,8 @@ class App extends StatelessWidget {
 
     return MaterialApp(
       title: 'xICMP Monitoring Tool',
+      locale: Locale('en'),
+      supportedLocales: const [Locale('en')],
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: theme,

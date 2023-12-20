@@ -1,6 +1,7 @@
 // ignore_for_file: unused_import
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -134,9 +135,16 @@ class MonitoringService {
   static Future<Ping> _pingTo(String adress, Duration limit) async {
     final sendTime = DateTime.now();
     try {
-      final proc = await Process.run('ping', ['-c', '1', adress]).timeout(limit);
+      late final ProcessResult proc;
+
+      if (Platform.isWindows) {
+        proc = await Process.run('chcp 437 && ping $adress -n 1', [], environment: {'LANG': 'en_US'}, runInShell: true).timeout(limit);
+      } else {
+        proc = await Process.run('ping', ['-c', '1', adress], environment: {'LC_ALL': 'C'}).timeout(limit);
+      }
+
       final out = proc.stdout;
-      // print(out);
+
       if (out is String) {
         final match = RegExp(r'(?<=time\s*=\s*)\d+').stringMatch(out);
         if (match != null) {
