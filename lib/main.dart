@@ -1,36 +1,67 @@
+// ignore_for_file: unused_import
+import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:xICMP_Monitoring_tool/repository/bloc/HostsDataBloc.dart';
-import 'package:xICMP_Monitoring_tool/screens/MainScreen.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+// import 'package:flutter/rendering.dart';
+import 'package:xicmpmt/core/app_logger.dart';
+import 'package:xicmpmt/screens/main_screen/main_screen.dart';
 
-void main() {
-  runApp(PingStatsApp());
+Future<void> main() async {
+  // debugRepaintRainbowEnabled = true;
+
+  AppLogger.stream.listen((LogEntity l) {
+    // Setup local log
+    log(l.msg, time: l.time, error: l.error, stackTrace: l.stack, name: l.name, level: l.level.index);
+
+    // Setup remote log
+    if (l.error != null) Sentry.captureException(l.error, stackTrace: l.stack);
+    if (l.level == Level.info) Sentry.captureMessage(l.msg, template: l.name);
+    final b = Breadcrumb(message: l.msg, level: SentryLevel.fromName(l.level.name), timestamp: l.time, category: l.name);
+    Sentry.addBreadcrumb(b);
+  });
+
+  // runApp(const App());
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = const String.fromEnvironment('sentryKey');
+      options.tracesSampleRate = 1.0;
+      options.enablePrintBreadcrumbs = false;
+      options.enableAutoPerformanceTracing = true;
+      // options.beforeSendTransaction = (transaction) async {
+      //   debugPrint('tr send: ${transaction.eventId} ${DateTime.now()}');
+      //   return transaction;
+      // };
+    },
+    appRunner: () => runApp(const App()),
+  );
 }
 
-class PingStatsApp extends StatelessWidget {
+class App extends StatelessWidget {
+  const App({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final theme = ColorScheme.fromSeed(
+      seedColor: Color(0xff151820),
+      brightness: Brightness.dark,
+      surfaceTint: Color(0xff101216),
+      primary: Colors.white,
+      secondary: Colors.yellowAccent,
+      background: Color(0xff101216),
+    );
+
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'PingStats',
-        theme: ThemeData.from(
-            colorScheme: ColorScheme(
-                primary: Color(0xff000000),
-                primaryVariant: Color(0xff000000),
-                secondary: Color(0xff000000),
-                secondaryVariant: Color(0xff000000),
-                surface: Color(0xff09090B),
-                background: Color(0xff121216),
-                error: Color(0xffFAF338),
-                onPrimary: Color(0xff000000),
-                onSecondary: Color(0xff000000),
-                onSurface: Color(0xff1C1C22),
-                onBackground: Color(0xff000000),
-                onError: Color(0xff000000),
-                brightness: Brightness.dark)),
-        home: Provider(create: (_) => HostsDataBloc(), child: MainScreen()));
+      title: 'xICMP Monitoring Tool',
+      locale: Locale('en'),
+      supportedLocales: const [Locale('en')],
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: theme,
+      ),
+      home: const MainScreen(),
+    );
   }
 }
 
-// Color palette
-// https://coolors.co/f5f5f5-1c1c22-db5762-faf338
+
+ //  TODO: md, policy, release.
