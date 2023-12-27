@@ -35,11 +35,10 @@ Data is displayed in detailed graphical form and can be used to perform line ana
   <li>Android 4.4+</li>
   <li>MacOS 10.15+</li>
   <li>Windows 7+</li>
-  <li>Linux</li>
 </ul> 
   
 <h3>Installation</h3>
-<a href="https://github.com/digiborimusik/xICMP-Monitoring-tool/releases/">Download</a>
+<a href="https://github.com/digiboridev/xICMP-Monitoring-tool/releases/">Download</a>
 
 
 <h3>Contacts:</h3>

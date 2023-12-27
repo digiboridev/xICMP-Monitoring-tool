@@ -43,12 +43,11 @@ class _HostAdressDialogState extends State<HostAdressDialog> {
       initialValue: hostAdress,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       onChanged: (v) => setState(() => hostAdress = v),
+      style: const TextStyle(fontSize: 16, height: 1),
       decoration: InputDecoration(
         hintText: '127.0.0.1/abc.d',
         border: OutlineInputBorder(),
         isDense: true,
-        isCollapsed: true,
-        contentPadding: EdgeInsets.all(8),
       ),
       // inputFormatters: [AppFormatters.ipFormatter],
       validator: (value) {
